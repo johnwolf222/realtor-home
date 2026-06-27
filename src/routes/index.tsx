@@ -34,31 +34,31 @@ function Home() {
 
   return (
     <AppShell>
-      <main className="mx-auto w-full max-w-[430px] px-5 pb-36 pt-8 sm:max-w-[450px]">
+      <main className="mx-auto w-full max-w-[430px] px-5 pb-36 pt-8 sm:max-w-[480px]">
         <section className="text-center">
-          <div className="relative mx-auto h-[158px] overflow-visible rounded-[1.35rem]">
+          <div className="relative mx-auto h-[170px] overflow-visible rounded-[1.35rem]">
             <img
               src={realtor.hero}
               alt={`${realtor.name} luxury real estate`}
-              className="h-[136px] w-full rounded-[1.35rem] object-cover shadow-sm"
+              className="h-[146px] w-full rounded-[1.35rem] object-cover shadow-sm"
             />
 
-            <div className="absolute left-1/2 top-[88px] -translate-x-1/2">
+            <div className="absolute left-1/2 top-[92px] -translate-x-1/2">
               <div className="rounded-full border-[5px] border-background bg-background shadow-xl">
                 <img
                   src={realtor.headshot}
                   alt={realtor.name}
-                  className="size-[88px] rounded-full object-cover object-top"
+                  className="size-[94px] rounded-full object-cover object-top"
                 />
               </div>
             </div>
           </div>
 
-          <h1 className="mt-7 font-serif text-[1.72rem] leading-tight tracking-tight text-foreground sm:text-[1.95rem]">
+          <h1 className="mt-7 font-serif text-[1.8rem] leading-tight tracking-tight text-foreground sm:text-[2rem]">
             {realtor.tagline}
           </h1>
 
-          <p className="mx-auto mt-3 max-w-[340px] text-[12px] leading-6 text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-[390px] text-[12px] leading-6 text-muted-foreground">
             Curating the world&apos;s most exceptional properties for the most discerning clients.
           </p>
 
@@ -66,7 +66,7 @@ function Home() {
             DRE #8829402 · Prestige Realty Group
           </p>
 
-          <div className="mx-auto mt-6 flex max-w-[390px] items-center justify-center gap-3">
+          <div className="mx-auto mt-6 flex max-w-[430px] items-center justify-center gap-3">
             <ContactBubble icon={<Phone className="size-3.5" />} href={`tel:${realtor.phone}`} label="Call" />
             <ContactBubble icon={<Mail className="size-3.5" />} href={`mailto:${realtor.email}`} label="Email" />
             {socials.slice(0, 6).map((social) => (
@@ -74,7 +74,7 @@ function Home() {
             ))}
           </div>
 
-          <div className="mt-8 grid grid-cols-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+          <div className="mt-7 grid grid-cols-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
             {realtor.stats.map((stat) => (
               <div key={stat.label} className="border-r border-border px-2 py-4 last:border-r-0">
                 <p className="font-serif text-sm text-foreground">{stat.value}</p>

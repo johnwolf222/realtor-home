@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/70 p-1 shadow-sm lg:flex">
+          <nav className="hidden">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
