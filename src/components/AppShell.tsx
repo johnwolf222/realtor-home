@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isActive = (path: string) => (path === "/" ? pathname === "/" : pathname.startsWith(path));
 
   return (
-    <div className="min-h-screen bg-background pb-24 text-foreground md:pb-0">
+    <div className="min-h-screen bg-background pb-32 text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/88 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-3">
@@ -76,14 +76,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       {children}
 
       <VerificationPrompt pathname={pathname} />
-
-      <Link
-        to="/chat"
-        aria-label="Start chat"
-        className="fixed bottom-24 right-4 z-40 grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-2xl transition-transform hover:scale-105 md:bottom-6 md:right-6"
-      >
-        <MessageCircle className="size-5" />
-      </Link>
 
       <BottomNav />
     </div>
