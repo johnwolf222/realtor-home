@@ -1,0 +1,10 @@
+node_modules
+.output
+dist
+.env
+.env.*
+backups/
+hasdata-zillow-atlanta-sample.json
+openai-test-response.json
+.DS_Store
+*.swp
