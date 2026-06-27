@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {realtor.name}
               </h1>
               <p className="truncate text-[10px] font-black uppercase tracking-[0.24em] text-muted-foreground">
-                GEORGIA LUXURY ADVISOR
+                GEORGIA HOME ADVISOR
               </p>
             </div>
           </Link>
