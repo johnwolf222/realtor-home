@@ -71,21 +71,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6 lg:hidden lg:px-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${
-                isActive(link.to)
-                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
       </header>
 
       {children}
