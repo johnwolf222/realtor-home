@@ -30,51 +30,55 @@ function money(value: number) {
 function Home() {
   const { activeProperties } = usePublicProperties();
   const featuredListings = activeProperties.slice(0, 5);
-  const socials = Array.isArray(realtor.socials) ? realtor.socials.filter((social) => social.enabled !== false) : [];
+  const socials = Array.isArray(realtor.socials)
+    ? realtor.socials.filter((social) => social.enabled !== false)
+    : [];
 
   return (
     <AppShell>
-      <main className="mx-auto w-full max-w-[430px] px-5 pb-36 pt-8 sm:max-w-[480px]">
-        <section className="min-h-[calc(100vh-7.5rem)] text-center">
-          <div className="relative mx-auto h-[170px] overflow-visible rounded-[1.35rem]">
+      <main className="mx-auto w-full max-w-[480px] px-5 pb-40 pt-8">
+        <section className="min-h-[calc(100vh-8.5rem)] text-center">
+          <div className="relative mx-auto h-[190px] overflow-visible rounded-[1.35rem]">
             <img
               src={realtor.hero}
               alt={`${realtor.name} luxury real estate`}
-              className="h-[146px] w-full rounded-[1.35rem] object-cover shadow-sm"
+              className="h-[145px] w-full rounded-[1.35rem] object-cover shadow-sm"
             />
 
-            <div className="absolute left-1/2 top-[92px] -translate-x-1/2">
+            <div className="absolute left-1/2 top-[95px] -translate-x-1/2">
               <div className="rounded-full border-[5px] border-background bg-background shadow-xl">
                 <img
                   src={realtor.headshot}
                   alt={realtor.name}
-                  className="size-[94px] rounded-full object-cover object-top"
+                  className="size-[96px] rounded-full object-cover object-top"
                 />
               </div>
             </div>
           </div>
 
-          <h1 className="mt-7 font-serif text-[1.8rem] leading-tight tracking-tight text-foreground sm:text-[2rem]">
+          <h1 className="mt-4 font-serif text-[2rem] leading-tight tracking-tight text-foreground">
             {realtor.tagline}
           </h1>
 
-          <p className="mx-auto mt-3 max-w-[390px] text-[12px] leading-6 text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-[420px] text-[13px] leading-6 text-muted-foreground">
             Curating the world&apos;s most exceptional properties for the most discerning clients.
           </p>
 
-          <p className="mt-2 text-[11px] font-medium tracking-[0.04em] text-muted-foreground">
+          <p className="mt-2 text-[12px] font-medium tracking-[0.04em] text-muted-foreground">
             DRE #8829402 · Prestige Realty Group
           </p>
 
-          <div className="mx-auto mt-6 flex max-w-[430px] items-center justify-center gap-3">
+          <div className="mx-auto mt-7 flex max-w-[430px] items-center justify-center gap-3">
             <ContactBubble icon={<Phone className="size-3.5" />} href={`tel:${realtor.phone}`} label="Call" />
             <ContactBubble icon={<Mail className="size-3.5" />} href={`mailto:${realtor.email}`} label="Email" />
             {socials.slice(0, 6).map((social) => (
               <ContactBubble key={social.label} text={social.short} href={social.url} label={social.label} />
             ))}
           </div>
+        </section>
 
-          <div className="mt-16 grid grid-cols-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+        <section className="mt-16">
+          <div className="grid grid-cols-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
             {realtor.stats.map((stat) => (
               <div key={stat.label} className="border-r border-border px-2 py-4 last:border-r-0">
                 <p className="font-serif text-sm text-foreground">{stat.value}</p>
@@ -85,7 +89,7 @@ function Home() {
             ))}
           </div>
 
-          <p className="mt-7 pb-8 text-left text-[12px] leading-6 text-muted-foreground">
+          <p className="mt-7 text-left text-[12px] leading-6 text-muted-foreground">
             {realtor.bio}
           </p>
         </section>
@@ -152,7 +156,9 @@ function FeaturedListingCard({ property }: { property: Property }) {
         <p className="mt-1 text-xs text-muted-foreground">{property.address}</p>
 
         <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{property.beds} bd · {property.baths} ba · {Number(property.sqft || 0).toLocaleString()} sqft</span>
+          <span>
+            {property.beds} bd · {property.baths} ba · {Number(property.sqft || 0).toLocaleString()} sqft
+          </span>
           <span className="font-black text-foreground">{money(property.price)}</span>
         </div>
       </div>
