@@ -35,7 +35,7 @@ function Home() {
   return (
     <AppShell>
       <main className="mx-auto w-full max-w-[430px] px-5 pb-36 pt-8 sm:max-w-[480px]">
-        <section className="text-center">
+        <section className="min-h-[calc(100vh-7.5rem)] text-center">
           <div className="relative mx-auto h-[170px] overflow-visible rounded-[1.35rem]">
             <img
               src={realtor.hero}
@@ -74,7 +74,7 @@ function Home() {
             ))}
           </div>
 
-          <div className="mt-7 grid grid-cols-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+          <div className="mt-16 grid grid-cols-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
             {realtor.stats.map((stat) => (
               <div key={stat.label} className="border-r border-border px-2 py-4 last:border-r-0">
                 <p className="font-serif text-sm text-foreground">{stat.value}</p>
@@ -85,7 +85,7 @@ function Home() {
             ))}
           </div>
 
-          <p className="mt-7 text-left text-[12px] leading-6 text-muted-foreground">
+          <p className="mt-7 pb-8 text-left text-[12px] leading-6 text-muted-foreground">
             {realtor.bio}
           </p>
         </section>
