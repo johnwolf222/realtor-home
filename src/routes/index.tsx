@@ -36,39 +36,39 @@ function Home() {
 
   return (
     <AppShell>
-      <main className="mx-auto w-full max-w-[480px] px-5 pb-40 pt-8">
-        <section className="min-h-[calc(100vh-8.5rem)] text-center">
-          <div className="relative mx-auto h-[190px] overflow-visible rounded-[1.35rem]">
+      <main className="mx-auto w-[min(92vw,440px)] pb-40 pt-8">
+        <section className="text-center">
+          <div className="relative mx-auto h-[174px] overflow-visible rounded-[1.35rem]">
             <img
               src={realtor.hero}
               alt={`${realtor.name} luxury real estate`}
-              className="h-[145px] w-full rounded-[1.35rem] object-cover shadow-sm"
+              className="h-[150px] w-full rounded-[1.35rem] object-cover shadow-sm"
             />
 
-            <div className="absolute left-1/2 top-[95px] -translate-x-1/2">
+            <div className="absolute left-1/2 top-[102px] -translate-x-1/2">
               <div className="rounded-full border-[5px] border-background bg-background shadow-xl">
                 <img
                   src={realtor.headshot}
                   alt={realtor.name}
-                  className="size-[96px] rounded-full object-cover object-top"
+                  className="size-[88px] rounded-full object-cover object-top"
                 />
               </div>
             </div>
           </div>
 
-          <h1 className="mt-4 font-serif text-[2rem] leading-tight tracking-tight text-foreground">
+          <h1 className="mt-5 font-serif text-[1.75rem] leading-tight tracking-tight text-foreground sm:text-[1.9rem]">
             {realtor.tagline}
           </h1>
 
-          <p className="mx-auto mt-3 max-w-[420px] text-[13px] leading-6 text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-[390px] text-[12px] leading-6 text-muted-foreground">
             Curating the world&apos;s most exceptional properties for the most discerning clients.
           </p>
 
-          <p className="mt-2 text-[12px] font-medium tracking-[0.04em] text-muted-foreground">
-            DRE #8829402 · Prestige Realty Group
+          <p className="mt-2 text-[11px] font-medium tracking-[0.04em] text-muted-foreground">
+            GA License #8829402 · Prestige Realty Group
           </p>
 
-          <div className="mx-auto mt-7 flex max-w-[430px] items-center justify-center gap-3">
+          <div className="mx-auto mt-6 flex max-w-[420px] items-center justify-center gap-2.5">
             <ContactBubble icon={<Phone className="size-3.5" />} href={`tel:${realtor.phone}`} label="Call" />
             <ContactBubble icon={<Mail className="size-3.5" />} href={`mailto:${realtor.email}`} label="Email" />
             {socials.slice(0, 6).map((social) => (
@@ -77,7 +77,7 @@ function Home() {
           </div>
         </section>
 
-        <section className="mt-16">
+        <section className="mt-7">
           <div className="grid grid-cols-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
             {realtor.stats.map((stat) => (
               <div key={stat.label} className="border-r border-border px-2 py-4 last:border-r-0">
@@ -183,7 +183,7 @@ function ContactBubble({
       aria-label={label}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel={href.startsWith("http") ? "noreferrer" : undefined}
-      className="grid size-12 place-items-center rounded-2xl border border-border bg-background text-[9px] font-black uppercase tracking-[0.08em] text-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-secondary"
+      className="grid size-[38px] place-items-center rounded-2xl border border-border bg-background text-[8px] font-black uppercase tracking-[0.08em] text-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-secondary"
     >
       {icon || text}
     </a>
