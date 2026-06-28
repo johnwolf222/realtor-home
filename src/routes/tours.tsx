@@ -9,8 +9,8 @@ import type { TourRequest } from "@/lib/data";
 export const Route = createFileRoute("/tours")({
   head: () => ({
     meta: [
-      { title: "Schedule a Tour — Elena Valerius" },
-      { name: "description", content: "Request a private in-person or video tour of any listing." },
+      { title: "Schedule a Tour or Preview — Elena Valerius" },
+      { name: "description", content: "Request an in-person showing or access to an owner-recorded property tour preview." },
     ],
   }),
   component: Tours,
@@ -84,28 +84,28 @@ function Tours() {
               <p className="section-kicker"><CalendarClock className="size-3.5" /> Private appointments</p>
               <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Schedule a Tour</h2>
               <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                Request an in-person showing or a private video tour. Video tour access codes are sent only after owner approval.
+                Request an in-person showing or ask for access to an owner-recorded Tour Preview. Approved account holders can view the preview anytime.
               </p>
 
               <div className="mt-6 rounded-[1.5rem] border border-primary/20 bg-primary/5 p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Have a video code?</p>
-                    <h3 className="mt-1 font-serif text-2xl">Enter the Live Video Room</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Use the code sent by the owner to enter the waiting room.</p>
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Have preview access?</p>
+                    <h3 className="mt-1 font-serif text-2xl">Open the Tour Preview</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Use the owner-approved access code to view the recorded property preview.</p>
                   </div>
 
                   <Link to="/tours/live" className="rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-sm">
-                    Open Live Room
+                    Open Preview
                   </Link>
                 </div>
               </div>
             </div>
 
             <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm sm:p-8">
-              <h3 className="font-serif text-2xl">Available live video tours</h3>
+              <h3 className="font-serif text-2xl">Tour Preview access</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                A property appears here only after the owner starts the live video tour from the dashboard.
+                Tour Previews are recorded by the owner and can include timestamped sections for the front yard, entryway, living room, kitchen, bedrooms, bathrooms, basement, and backyard.
               </p>
 
               <div className="mt-5 space-y-3">
@@ -114,7 +114,7 @@ function Tours() {
                     <div key={t.property} className="flex flex-col gap-3 rounded-2xl border border-green-200 bg-green-50 p-4 text-green-950 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold">{t.property}</p>
-                        <p className="mt-1 text-xs text-green-900/75">{t.date} · {t.time} · Live viewing has started</p>
+                        <p className="mt-1 text-xs text-green-900/75">{t.date} · {t.time} · Preview access available</p>
                       </div>
                       <Link to="/tours/live" className="w-fit shrink-0 rounded-full bg-green-600 px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-white">
                         Available
@@ -123,7 +123,7 @@ function Tours() {
                   ))
                 ) : (
                   <div className="rounded-2xl border border-dashed border-border bg-background p-5 text-sm leading-6 text-muted-foreground">
-                    No live video tours are available right now.
+                    No Tour Previews are available right now.
                   </div>
                 )}
               </div>
@@ -139,7 +139,7 @@ function Tours() {
                 <p className="mt-5 font-serif text-3xl">Request sent</p>
                 <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
                   {mode} for <span className="font-medium text-foreground">{property}</span> on {date} at {time}.
-                  {mode === "Video Tour" ? " If approved, the owner will send your private video-room code." : ` A confirmation will arrive at ${email}.`}
+                  {mode === "Video Tour" ? " If approved, the owner will send your private Tour Preview access." : ` A confirmation will arrive at ${email}.`}
                 </p>
                 <button onClick={() => setSubmitted(false)} className="mt-7 rounded-full bg-primary px-6 py-4 text-sm font-semibold text-primary-foreground">
                   Book another
@@ -152,7 +152,7 @@ function Tours() {
                     <MapPin className="size-5" /> In Person
                   </button>
                   <button type="button" onClick={() => setMode("Video Tour")} className={modeButton(mode === "Video Tour")}>
-                    <Video className="size-5" /> Video Tour
+                    <Video className="size-5" /> Tour Preview
                   </button>
                 </div>
 
