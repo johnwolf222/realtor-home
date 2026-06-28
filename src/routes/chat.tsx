@@ -40,7 +40,7 @@ export const Route = createFileRoute("/chat")({
   head: () => ({
     meta: [
       { title: "AI Member Concierge — Elena Valerius" },
-      { name: "description", content: "Ask questions, share documents, request video tours, and let the AI property concierge guide your next step." },
+      { name: "description", content: "Ask questions, share documents, view property videos, and let the AI property concierge guide your next step." },
     ],
   }),
   component: Chat,
@@ -1019,13 +1019,13 @@ const DIRECT_CHAT_COMMANDS: Array<{
       "view available times",
     ],
     response: "Let’s get your tour started. Which property would you like to tour?",
-    buttons: ["View Listings", "Request Video Tour", "Start Client ID Verification", "Contact Realtor"],
+    buttons: ["View Listings", "View Property Video", "Start Client ID Verification", "Contact Realtor"],
   },
   {
     command: "request_video_tour",
     labels: [
-      "request video tour",
-      "schedule video tour",
+      "view property video",
+      "open property video",
       "video tour",
       "virtual tour",
       "online tour",
@@ -1033,10 +1033,10 @@ const DIRECT_CHAT_COMMANDS: Array<{
       "can i tour online",
       "i can't come in person",
       "i cannot come in person",
-      "show me video tour",
-      "view virtual tour",
+      "show me property video",
+      "view property video",
     ],
-    response: "Sure — you can request a video tour if available. Which property are you interested in?",
+    response: "Sure — property videos now live under each property page. Which property are you interested in?",
     buttons: ["View Listings", "Schedule Tour", "Contact Realtor"],
   },
   {
@@ -1131,7 +1131,7 @@ function isExactVerificationButtonMessage(message: string) {
 function isSignInCommandMessage(message: string) {
   const clean = normalizeBudgetTourText(message);
 
-  return /^(sign in|login|log in|sign in to schedule|sign in to schedule tour|sign in to request video tour|sign in to verify)$/.test(clean);
+  return /^(sign in|login|log in|sign in to schedule|sign in to schedule tour|sign in to view property video|sign in to verify)$/.test(clean);
 }
 
 function isCreateAccountCommandMessage(message: string) {
@@ -1149,13 +1149,27 @@ function isExactScheduleTourButtonMessage(message: string) {
 function isExactVideoTourButtonMessage(message: string) {
   const clean = normalizeBudgetTourText(message);
 
-  return /^(request video tour|schedule video tour|view virtual tour|request virtual tour|request remote tour|video tour|virtual tour)$/.test(clean);
+  return /^(view property video|open property video|property video|view property video|schedule video tour|view virtual tour|request virtual tour|request remote tour|video tour|virtual tour)$/.test(clean);
 }
 
 function routeAfterChatMessage(href: string) {
   window.setTimeout(() => {
     window.location.href = href;
   }, 250);
+}
+
+type ChatPropertyVideoTourLookup = { propertyId: string; isEnabled?: boolean; videoUrl?: string };
+
+function hasOwnerPropertyVideo(propertyVideoTours: ChatPropertyVideoTourLookup[], propertyId?: string) {
+  if (!propertyId) return false;
+
+  return propertyVideoTours.some(
+    (tour) => tour.propertyId === propertyId && tour.isEnabled !== false && Boolean(tour.videoUrl?.trim()),
+  );
+}
+
+function ownerVideoMissingReply(propertyTitle: string) {
+  return `The owner has not created a property video for ${propertyTitle} yet. The best next step is to schedule an in-person tour so you can see the home directly, or contact the realtor and ask when the video will be added.`;
 }
 
 
@@ -1987,7 +2001,8 @@ function Trust({ icon: Icon, title, text }: { icon: React.ComponentType<{ classN
 function ChatRoom() {
   const profile = useRealtorProfile();
   const { user } = useAuth();
-  const { properties, activeProperties } = usePublicProperties();
+  const { properties,
+    propertyVideoTours, activeProperties } = usePublicProperties();
   const { chatThreads, ensureChatThread, addChatMessage, addSystemChatMessage, requestVideoCall, markThreadRead, conciergeSettings, recordAiHandoff, recordContactAction } = usePlatformData();
   const [threadId, setThreadId] = useState("");
   const [text, setText] = useState("");
@@ -2158,8 +2173,9 @@ function ChatRoom() {
       const accountVerificationRoute = "/account";
       const tourRoute = selectedHomeForAction ? `/tours?propertyId=${selectedHomeForAction.id}` : "/tours";
       const videoTourRoute = selectedHomeForAction
-        ? `/tours?propertyId=${selectedHomeForAction.id}&mode=video`
-        : "/tours?mode=video";
+        ? `/property/${selectedHomeForAction.id}#property-video-tour`
+        : "/listings";
+      const selectedHomeVideoReady = hasOwnerPropertyVideo(propertyVideoTours, selectedHomeForAction?.id);
 
       if (isSignInCommandMessage(memberMessage.trim())) {
         setLastPropertyCards([]);
@@ -2207,7 +2223,7 @@ function ChatRoom() {
             thread.id,
             "realtor",
             isVideoTourMessage
-              ? "To request a video tour, you may need to sign in or create an account first. Once signed in, you can choose the property and continue with the video tour request."
+              ? "Property videos are login-locked under each property page. Sign in or create an account first, then open the property video section."
               : "To schedule a tour, you may need to sign in or create an account first. Once signed in, you can choose the property and continue scheduling.",
           );
           return;
@@ -2217,12 +2233,18 @@ function ChatRoom() {
           setLastPropertyCards([selectedHomeForAction]);
           setLastActions(
             isVideoTourMessage
-              ? ["Request Video Tour", "Schedule Tour", "View Listings", "Contact Realtor"]
-              : ["Schedule Tour", "Request Video Tour", "View Listings", "Contact Realtor"],
+              ? ["View Property Video", "Schedule Tour", "View Listings", "Contact Realtor"]
+              : ["Schedule Tour", "View Property Video", "View Listings", "Contact Realtor"],
           );
 
           if (isExactVideoTourButtonMessage(memberMessage.trim())) {
-            addChatMessage(thread.id, "realtor", `You’re signed in. Opening the video tour request for ${selectedHomeForAction.title}.`);
+            if (!selectedHomeVideoReady) {
+              setLastActions(["Schedule Tour", "View Listings", "Contact Realtor"]);
+              addChatMessage(thread.id, "realtor", ownerVideoMissingReply(selectedHomeForAction.title));
+              return;
+            }
+
+            addChatMessage(thread.id, "realtor", `You’re signed in. Opening the property video section for ${selectedHomeForAction.title}.`);
             routeAfterChatMessage(videoTourRoute);
             return;
           }
@@ -2233,11 +2255,17 @@ function ChatRoom() {
             return;
           }
 
+          if (isVideoTourMessage && !selectedHomeVideoReady) {
+            setLastActions(["Schedule Tour", "View Listings", "Contact Realtor"]);
+            addChatMessage(thread.id, "realtor", ownerVideoMissingReply(selectedHomeForAction.title));
+            return;
+          }
+
           addChatMessage(
             thread.id,
             "realtor",
             isVideoTourMessage
-              ? `You’re signed in. You can request a video tour for ${selectedHomeForAction.title} using the button below.`
+              ? `You’re signed in. You can open the login-locked property video section for ${selectedHomeForAction.title} using the button below.`
               : `You’re signed in. You can schedule an in-person tour for ${selectedHomeForAction.title} using the button below.`,
           );
           return;
@@ -2249,7 +2277,7 @@ function ChatRoom() {
           thread.id,
           "realtor",
           isVideoTourMessage
-            ? "You’re signed in. Which property would you like a video tour for? Select a property card below."
+            ? "You’re signed in. Which property video would you like to view? Select a property card below."
             : "You’re signed in. Which property would you like to tour? Select a property card below.",
         );
         return;
@@ -2309,14 +2337,14 @@ function ChatRoom() {
           setLastPropertyCards([selectedHome]);
           setLastActions(
             isVideoTourMessage
-              ? ["Request Video Tour", "Schedule Tour", "View Listings", "Contact Realtor"]
-              : ["Schedule Tour", "Request Video Tour", "View Listings", "Contact Realtor"],
+              ? ["View Property Video", "Schedule Tour", "View Listings", "Contact Realtor"]
+              : ["Schedule Tour", "View Property Video", "View Listings", "Contact Realtor"],
           );
           addChatMessage(
             thread.id,
             "realtor",
             isVideoTourMessage
-              ? `Yes — you can request a video tour for ${selectedHome.title} if video tour options are available.`
+              ? `Yes — you can view a property video for ${selectedHome.title} if video tour options are available.`
               : `You can schedule an in-person tour for ${selectedHome.title} if tour options are available.`,
           );
           return;
@@ -2326,14 +2354,14 @@ function ChatRoom() {
           setLastPropertyCards(activeHomes.slice(0, 3));
           setLastActions(
             isVideoTourMessage
-              ? ["Request Video Tour", "View Listings", "Schedule Tour", "Contact Realtor"]
-              : ["Schedule Tour", "Request Video Tour", "View Listings", "Contact Realtor"],
+              ? ["View Property Video", "View Listings", "Schedule Tour", "Contact Realtor"]
+              : ["Schedule Tour", "View Property Video", "View Listings", "Contact Realtor"],
           );
           addChatMessage(
             thread.id,
             "realtor",
             isVideoTourMessage
-              ? "Yes — video tours may be available. Select a property card below to request a video tour, or view all listings to choose a home."
+              ? "Yes — video tours may be available. Select a property card below to view a property video, or view all listings to choose a home."
               : "You can schedule an in-person tour if tour options are available. Select a property card below or view all listings to choose a home.",
           );
           return;
@@ -2341,7 +2369,7 @@ function ChatRoom() {
 
         if (asksForSpecificPropertyContext && !selectedHome && !minimumBeds && !minimumBaths && !minPrice && !maxPrice && !isLiveTourMessage && !isVideoTourMessage) {
           setLastPropertyCards(activeHomes.slice(0, 3));
-          setLastActions(["View Listings", "Schedule Tour", "Request Video Tour", "Contact Realtor"]);
+          setLastActions(["View Listings", "Schedule Tour", "View Property Video", "Contact Realtor"]);
           addChatMessage(
             thread.id,
             "realtor",
@@ -2381,31 +2409,31 @@ function ChatRoom() {
         if (budgetLabel) filterParts.push(budgetLabel);
 
         const propertyActionButtons = isVideoTourMessage
-          ? ["Request Video Tour", "Schedule Tour", "View Listings", "Search by Price", "Contact Realtor"]
+          ? ["View Property Video", "Schedule Tour", "View Listings", "Search by Price", "Contact Realtor"]
           : isLiveTourMessage
-            ? ["Schedule Tour", "Request Video Tour", "View Listings", "Search by Price", "Contact Realtor"]
+            ? ["Schedule Tour", "View Property Video", "View Listings", "Search by Price", "Contact Realtor"]
             : budgetFilter
               ? ["View Listings", "Search by Price", "Search by City", "Search by Bedrooms", "Search by Amenities", "Contact Realtor"]
               : filterParts.length
-                ? ["View Listings", "Schedule Tour", "Request Video Tour", "Search by Price", "Search by Amenities", "Contact Realtor"]
+                ? ["View Listings", "Schedule Tour", "View Property Video", "Search by Price", "Search by Amenities", "Contact Realtor"]
                 : ["View Listings", "Search by Price", "Search by City", "Search by Bedrooms", "Search by Amenities", "Contact Realtor"];
 
         const message = (() => {
           if (homesToShow.length) {
             if (budgetFilter && isVideoTourMessage) {
-              return `I found homes matching ${budgetLabel} where you can request a video tour when available. Select a property card to view details, schedule a tour, or request a video tour.`;
+              return `I found homes matching ${budgetLabel} where you can view a property video when available. Select a property card to view details, schedule a tour, or view a property video.`;
             }
 
             if (budgetFilter && isLiveTourMessage) {
-              return `I found homes matching ${budgetLabel} where you can request an in-person tour when available. Select a property card to view details, schedule a tour, or request a video tour.`;
+              return `I found homes matching ${budgetLabel} where you can request an in-person tour when available. Select a property card to view details, schedule a tour, or view a property video.`;
             }
 
             if (budgetFilter) {
-              return `I found homes ${budgetLabel}. Select a property card to view details, schedule a tour, or request a video tour.`;
+              return `I found homes ${budgetLabel}. Select a property card to view details, schedule a tour, or view a property video.`;
             }
 
             if (isVideoTourMessage) {
-              return "Yes — video tours may be available. Select a property card below to request a video tour, or view all listings to choose a home.";
+              return "Yes — video tours may be available. Select a property card below to view a property video, or view all listings to choose a home.";
             }
 
             if (isLiveTourMessage) {
@@ -2413,10 +2441,10 @@ function ChatRoom() {
             }
 
             if (filterParts.length) {
-              return `Yes — I found ${homesToShow.length} home${homesToShow.length === 1 ? "" : "s"} matching ${filterParts.join(", ")}. Swipe through the cards below to view details, schedule a tour, or request a video tour.`;
+              return `Yes — I found ${homesToShow.length} home${homesToShow.length === 1 ? "" : "s"} matching ${filterParts.join(", ")}. Swipe through the cards below to view details, schedule a tour, or view a property video.`;
             }
 
-            return "Yes — here are active homes visible on the site right now. Swipe through the cards below to view details, schedule a tour, or request a video tour.";
+            return "Yes — here are active homes visible on the site right now. Swipe through the cards below to view details, schedule a tour, or view a property video.";
           }
 
           if (budgetFilter) {
@@ -2530,14 +2558,14 @@ function ChatRoom() {
   const videoRequest = () => {
     if (!lead) return;
     if (sessionTimedOut) {
-      toast("Start a new chat session to request a video tour.", { icon: "⏱️" });
+      toast("Start a new chat session to view a property video.", { icon: "⏱️" });
       return;
     }
     touchChatSession();
     requestVideoCall(lead);
     toast.success("Video consultation requested.");
     if (thread?.id) {
-      void pushAiReply("I want a video tour");
+      void pushAiReply("I want to view a property video");
     }
   };
 
@@ -2660,7 +2688,8 @@ function ChatRoom() {
                     const sqft = property.sqft ? `${property.sqft.toLocaleString()} sq ft` : "Size not listed";
                     const propertyUrl = `/property/${property.id}`;
                     const tourUrl = `/tours?propertyId=${property.id}`;
-                    const videoTourUrl = `/tours?propertyId=${property.id}&mode=video`;
+                    const videoTourReady = hasOwnerPropertyVideo(propertyVideoTours, property.id);
+                    const videoTourUrl = `/property/${property.id}#property-video-tour`;
 
                     return (
                       <div
@@ -2733,7 +2762,7 @@ function ChatRoom() {
                               }}
                               className="rounded-full border border-slate-300 px-2 py-1.5 text-[10px] font-semibold text-slate-800"
                             >
-                              Video Tour
+                              {videoTourReady ? "Video Ready" : "No Video Yet"}
                             </button>
                           </div>
                         </div>
