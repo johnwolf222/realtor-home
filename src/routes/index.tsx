@@ -36,16 +36,16 @@ function Home() {
 
   return (
     <AppShell>
-      <main className="mx-auto w-[min(92vw,440px)] pb-40 pt-8">
+      <main className="mx-auto w-[min(94vw,760px)] pb-40 pt-8">
         <section className="text-center">
-          <div className="relative mx-auto h-[174px] overflow-visible rounded-[1.35rem]">
+          <div className="relative mx-auto h-[174px] overflow-visible rounded-[1.35rem] sm:h-[230px]">
             <img
               src={realtor.hero}
               alt={`${realtor.name} luxury real estate`}
-              className="h-[150px] w-full rounded-[1.35rem] object-cover shadow-sm"
+              className="h-[150px] w-full rounded-[1.35rem] object-cover shadow-sm sm:h-[190px]"
             />
 
-            <div className="absolute left-1/2 top-[102px] -translate-x-1/2">
+            <div className="absolute left-1/2 top-[102px] -translate-x-1/2 sm:top-[135px]">
               <div className="rounded-full border-[5px] border-background bg-background shadow-xl">
                 <img
                   src={realtor.headshot}
@@ -60,7 +60,7 @@ function Home() {
             {realtor.tagline}
           </h1>
 
-          <p className="mx-auto mt-3 max-w-[390px] text-[12px] leading-6 text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-[560px] text-[12px] leading-6 text-muted-foreground">
             Curating the world&apos;s most exceptional properties for the most discerning clients.
           </p>
 
@@ -68,7 +68,7 @@ function Home() {
             GA License #8829402 · Prestige Realty Group
           </p>
 
-          <div className="mx-auto mt-6 flex max-w-[420px] items-center justify-center gap-2.5">
+          <div className="mx-auto mt-6 flex max-w-[560px] flex-wrap items-center justify-center gap-2.5">
             <ContactBubble icon={<Phone className="size-3.5" />} href={`tel:${realtor.phone}`} label="Call" />
             <ContactBubble icon={<Mail className="size-3.5" />} href={`mailto:${realtor.email}`} label="Email" />
             {socials.slice(0, 6).map((social) => (
@@ -89,7 +89,7 @@ function Home() {
             ))}
           </div>
 
-          <p className="mt-7 text-left text-[12px] leading-6 text-muted-foreground">
+          <p className="mt-7 pb-32 text-left text-[12px] leading-6 text-muted-foreground">
             {realtor.bio}
           </p>
         </section>

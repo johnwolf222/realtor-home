@@ -15,8 +15,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const realtor = useRealtorProfile();
 
   return (
-    <div className="min-h-screen bg-background pb-32 text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur-xl">
+    <div className="min-h-screen bg-background pb-32 pt-[62px] text-foreground">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
         <div className="mx-auto flex h-[62px] w-full items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-3">
             <img
