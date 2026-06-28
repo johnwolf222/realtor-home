@@ -52,6 +52,78 @@ export const realtor = {
 export type PropertyType = "House";
 export type PropertyStatus = "active" | "sold";
 
+export type PropertyVideoTourChapterLabel =
+  | "Front Yard"
+  | "Entryway"
+  | "Living Room"
+  | "Kitchen"
+  | "Master Bedroom"
+  | "Guest Bedroom"
+  | "Bathroom"
+  | "Basement"
+  | "Backyard";
+
+export interface PropertyVideoTourChapter {
+  label: PropertyVideoTourChapterLabel;
+  timestamp: string;
+  seconds: number;
+}
+
+export interface PropertyVideoTour {
+  id: string;
+  propertyId: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  posterUrl?: string;
+  isEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  chapters: PropertyVideoTourChapter[];
+}
+
+export interface PropertyVideoTourView {
+  id: string;
+  propertyId: string;
+  videoTourId: string;
+  clientId?: string;
+  clientName: string;
+  clientEmail: string;
+  viewedAt: string;
+  viewCount: number;
+}
+
+export interface PropertyVideoTourComment {
+  id: string;
+  propertyId: string;
+  videoTourId: string;
+  clientId?: string;
+  clientName: string;
+  clientEmail: string;
+  comment: string;
+  liked: boolean;
+  createdAt: string;
+  chatThreadId?: string;
+  chatMessageId?: string;
+}
+
+export const defaultPropertyVideoTourChapters: PropertyVideoTourChapter[] = [
+  { label: "Front Yard", timestamp: "0:00", seconds: 0 },
+  { label: "Entryway", timestamp: "0:45", seconds: 45 },
+  { label: "Living Room", timestamp: "1:20", seconds: 80 },
+  { label: "Kitchen", timestamp: "2:10", seconds: 130 },
+  { label: "Master Bedroom", timestamp: "3:05", seconds: 185 },
+  { label: "Guest Bedroom", timestamp: "4:00", seconds: 240 },
+  { label: "Bathroom", timestamp: "4:40", seconds: 280 },
+  { label: "Basement", timestamp: "5:25", seconds: 325 },
+  { label: "Backyard", timestamp: "6:15", seconds: 375 },
+];
+
+export const propertyVideoTours: PropertyVideoTour[] = [];
+export const propertyVideoTourViews: PropertyVideoTourView[] = [];
+export const propertyVideoTourComments: PropertyVideoTourComment[] = [];
+
+
 export interface Property {
   id: string;
   title: string;
