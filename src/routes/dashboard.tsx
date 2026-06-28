@@ -1065,158 +1065,125 @@ function VerificationPhotoSet({ photos, clientName }: { photos?: Record<string, 
   );
 }
 
-function makeVideoTourCode(name: string) {
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("");
-
-  const random = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `${initials || "EV"}-${random}`;
-}
-
-function videoStatusMeta(tour?: TourRequest) {
-  if (!tour) return { label: "No request", badge: "bg-secondary text-muted-foreground" };
-
-  if (tour.videoSessionStatus === "live") return { label: "Live", badge: "bg-green-600 text-white" };
-  if (tour.videoSessionStatus === "ended") return { label: "Feedback", badge: "bg-purple-100 text-purple-800" };
-  if (tour.videoSessionStatus === "closed") return { label: "Closed", badge: "bg-slate-900 text-white" };
-  if (tour.videoCodeSentAt) return { label: "Invite sent", badge: "bg-green-100 text-green-800" };
-  if (tour.videoAccessCode) return { label: "Approved", badge: "bg-blue-100 text-blue-800" };
-  return { label: "Needs approval", badge: "bg-secondary text-muted-foreground" };
-}
 
 function Tours() {
-  const { tourRequests, updateTourRequest, deleteTourRequest, activeProperties } = usePlatformData();
-  const [selectedPropertyTitle, setSelectedPropertyTitle] = useState("");
+  const {
+    activeProperties,
+    propertyVideoTours,
+    propertyVideoTourViews,
+    propertyVideoTourComments,
+    upsertPropertyVideoTour,
+    removePropertyVideoTour,
+  } = usePlatformData();
 
-  const videoTourRequests = tourRequests.filter((tour) => tour.type === "Video Tour");
+  const [selectedPropertyId, setSelectedPropertyId] = useState(activeProperties[0]?.id || "");
+  const selectedProperty = activeProperties.find((property) => property.id === selectedPropertyId) || activeProperties[0];
+  const currentVideo = selectedProperty ? propertyVideoTours.find((tour) => tour.propertyId === selectedProperty.id) : undefined;
 
-  const propertyGroups = activeProperties.map((property) => {
-    const requests = videoTourRequests.filter((tour) => tour.property === property.title);
-    return { propertyTitle: property.title, property, requests };
-  });
-
-  const selectedGroup =
-    propertyGroups.find((group) => group.propertyTitle === selectedPropertyTitle) ||
-    propertyGroups[0];
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [posterUrl, setPosterUrl] = useState("");
+  const [isEnabled, setIsEnabled] = useState(true);
 
   useEffect(() => {
-    if (!selectedPropertyTitle && propertyGroups[0]) {
-      setSelectedPropertyTitle(propertyGroups[0].propertyTitle);
+    if (!selectedPropertyId && activeProperties[0]) {
+      setSelectedPropertyId(activeProperties[0].id);
     }
 
-    if (selectedPropertyTitle && !propertyGroups.some((group) => group.propertyTitle === selectedPropertyTitle)) {
-      setSelectedPropertyTitle(propertyGroups[0]?.propertyTitle || "");
+    if (selectedPropertyId && !activeProperties.some((property) => property.id === selectedPropertyId)) {
+      setSelectedPropertyId(activeProperties[0]?.id || "");
     }
-  }, [propertyGroups, selectedPropertyTitle]);
+  }, [activeProperties, selectedPropertyId]);
 
-  const approveClient = (tour: TourRequest) => {
-    const code = tour.videoAccessCode || makeVideoTourCode(tour.name);
+  useEffect(() => {
+    if (!selectedProperty) return;
 
-    updateTourRequest(tour.id, {
-      status: "Confirmed",
-      videoAccessCode: code,
-      videoSessionStatus: "approved",
-      videoCodeCreatedAt: tour.videoCodeCreatedAt || new Date().toISOString(),
-    });
+    const video = propertyVideoTours.find((tour) => tour.propertyId === selectedProperty.id);
 
-    toast.success(`${tour.name} approved. Code created.`);
-  };
+    setTitle(video?.title || `${selectedProperty.title} Video Tour`);
+    setDescription(video?.description || "Owner-recorded walkthrough for this property.");
+    setVideoUrl(video?.videoUrl || "");
+    setPosterUrl(video?.posterUrl || "");
+    setIsEnabled(video?.isEnabled ?? true);
+  }, [propertyVideoTours, selectedProperty]);
 
-  const sendInvite = (tour: TourRequest) => {
-    const code = tour.videoAccessCode || makeVideoTourCode(tour.name);
-    const message = `Your private video tour for ${tour.property} has been approved. Your room code is ${code}. Go to Member Portal or /tours/live and enter the code. You can enter the waiting room now; the live viewing unlocks when the owner starts the tour.`;
-
-    updateTourRequest(tour.id, {
-      status: "Confirmed",
-      videoAccessCode: code,
-      videoSessionStatus: "locked",
-      videoCodeCreatedAt: tour.videoCodeCreatedAt || new Date().toISOString(),
-      videoCodeSentAt: new Date().toISOString(),
-      videoClientMessageSentAt: new Date().toISOString(),
-      videoClientMessageText: message,
-    });
-
-    toast.success(`Invite code sent to ${tour.name}.`);
-  };
-
-  const startPropertyLive = () => {
-    if (!selectedGroup) return;
-
-    const invited = selectedGroup.requests.filter((request) => request.videoAccessCode && request.videoCodeSentAt);
-
-    if (!invited.length) {
-      toast.error("Send at least one client code before starting the live video tour.");
-      return;
-    }
-
-    const startedAt = new Date().toISOString();
-
-    invited.forEach((request) => {
-      updateTourRequest(request.id, {
-        status: "Confirmed",
-        videoSessionStatus: "live",
-        videoOwnerStartedAt: startedAt,
-      });
-    });
-
-    toast.success(`Live video tour started for ${selectedGroup.propertyTitle}. Approved clients can now tune in.`);
-  };
-
-  const endPropertyLive = () => {
-    if (!selectedGroup) return;
-
-    const liveRequests = selectedGroup.requests.filter((request) => request.videoSessionStatus === "live");
-
-    if (!liveRequests.length) {
-      toast.error("No live session is running for this property.");
-      return;
-    }
-
-    const endedAt = new Date().toISOString();
-
-    liveRequests.forEach((request) => {
-      updateTourRequest(request.id, {
-        videoSessionStatus: "ended",
-        videoOwnerEndedAt: endedAt,
-      });
-    });
-
-    toast.success(`Live video tour ended for ${selectedGroup.propertyTitle}. Everyone now moves to feedback.`);
-  };
-
-  const closePastEvent = () => {
-    if (!selectedGroup) return;
-
-    selectedGroup.requests
-      .filter((request) => ["ended", "closed"].includes(request.videoSessionStatus || ""))
-      .forEach((request) => {
-        updateTourRequest(request.id, { videoSessionStatus: "closed" });
-      });
-
-    toast.success("Past video tour event archived.");
-  };
-
-  const selectedProperty = selectedGroup?.property;
   const selectedImage =
     selectedProperty?.image ||
     selectedProperty?.gallery?.[0] ||
     selectedProperty?.photos?.[0] ||
     "/placeholder-property.jpg";
 
-  const invitedCount = selectedGroup?.requests.filter((request) => request.videoCodeSentAt).length || 0;
-  const liveCount = selectedGroup?.requests.filter((request) => request.videoSessionStatus === "live").length || 0;
-  const endedCount = selectedGroup?.requests.filter((request) => request.videoSessionStatus === "ended").length || 0;
+  const selectedViews = currentVideo
+    ? propertyVideoTourViews.filter((view) => view.videoTourId === currentVideo.id)
+    : [];
+
+  const selectedComments = currentVideo
+    ? propertyVideoTourComments.filter((comment) => comment.videoTourId === currentVideo.id)
+    : [];
+
+  const totalViews = selectedViews.reduce((sum, view) => sum + view.viewCount, 0);
+  const totalLikes = selectedComments.filter((comment) => comment.liked).length;
+  const writtenComments = selectedComments.filter((comment) => comment.comment.trim());
+
+  const saveVideo = () => {
+    if (!selectedProperty) {
+      toast.error("Choose a property first.");
+      return;
+    }
+
+    if (!videoUrl.trim()) {
+      toast.error("Add a video URL before saving.");
+      return;
+    }
+
+    upsertPropertyVideoTour({
+      propertyId: selectedProperty.id,
+      title,
+      description,
+      videoUrl,
+      posterUrl,
+      isEnabled,
+    });
+
+    toast.success("Property video saved.");
+  };
+
+  const deleteVideo = () => {
+    if (!selectedProperty || !currentVideo) {
+      toast.error("No video exists for this property yet.");
+      return;
+    }
+
+    removePropertyVideoTour(selectedProperty.id);
+    toast.success("Property video removed.");
+  };
+
+  const toggleLock = () => {
+    if (!selectedProperty || !currentVideo) {
+      toast.error("Save a video before changing lock status.");
+      return;
+    }
+
+    upsertPropertyVideoTour({
+      propertyId: selectedProperty.id,
+      title: currentVideo.title,
+      description: currentVideo.description,
+      videoUrl: currentVideo.videoUrl,
+      posterUrl: currentVideo.posterUrl,
+      isEnabled: !currentVideo.isEnabled,
+      chapters: currentVideo.chapters,
+    });
+
+    toast.success(currentVideo.isEnabled ? "Property video locked." : "Property video unlocked.");
+  };
 
   return (
     <div className="space-y-6 animate-fade-up">
       <Header
-        kicker="Video Tour Studio"
-        title="Property live-room control"
-        text="Approve clients one by one, send room codes, then start or end the live tour once for the whole property."
+        kicker="Property Video Manager"
+        title="Add, remove, lock, and review property videos"
+        text="Attach one owner-recorded video to each property. Clients must log in to view, like, comment, and create view history."
         icon={CalendarClock}
       />
 
@@ -1224,42 +1191,48 @@ function Tours() {
         <div className="space-y-3">
           <h3 className="font-serif text-2xl">Properties</h3>
 
-          {propertyGroups.map((group) => {
+          {activeProperties.map((property) => {
             const image =
-              group.property?.image ||
-              group.property?.gallery?.[0] ||
-              group.property?.photos?.[0] ||
+              property.image ||
+              property.gallery?.[0] ||
+              property.photos?.[0] ||
               "/placeholder-property.jpg";
 
-            const isSelected = selectedGroup?.propertyTitle === group.propertyTitle;
-            const groupLive = group.requests.some((request) => request.videoSessionStatus === "live");
+            const video = propertyVideoTours.find((tour) => tour.propertyId === property.id);
+            const views = video
+              ? propertyVideoTourViews
+                  .filter((view) => view.videoTourId === video.id)
+                  .reduce((sum, view) => sum + view.viewCount, 0)
+              : 0;
+
+            const isSelected = selectedProperty?.id === property.id;
 
             return (
               <button
-                key={group.propertyTitle}
+                key={property.id}
                 type="button"
-                onClick={() => setSelectedPropertyTitle(group.propertyTitle)}
+                onClick={() => setSelectedPropertyId(property.id)}
                 className={`w-full overflow-hidden rounded-3xl border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
                   isSelected ? "border-primary ring-2 ring-primary/10" : "border-border"
                 }`}
               >
                 <div className="grid sm:grid-cols-[140px_1fr]">
-                  <img src={image} alt={group.propertyTitle} className="h-36 w-full object-cover sm:h-full" />
+                  <img src={image} alt={property.title} className="h-36 w-full object-cover sm:h-full" />
                   <div className="p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Property room</p>
-                    <h4 className="mt-1 font-serif text-xl">{group.propertyTitle}</h4>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Property video</p>
+                    <h4 className="mt-1 font-serif text-xl">{property.title}</h4>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {group.property.city} · {group.property.beds} bd · {group.property.baths} ba
+                      {property.city} · {property.beds} bd · {property.baths} ba
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                        {group.requests.length} request{group.requests.length === 1 ? "" : "s"}
+                      <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                        video?.isEnabled ? "bg-green-100 text-green-800" : video ? "bg-slate-900 text-white" : "bg-secondary text-muted-foreground"
+                      }`}>
+                        {video?.isEnabled ? "Unlocked" : video ? "Locked" : "No video"}
                       </span>
-                      {groupLive ? (
-                        <span className="rounded-full bg-green-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
-                          Available
-                        </span>
-                      ) : null}
+                      <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                        {views} view{views === 1 ? "" : "s"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1269,23 +1242,28 @@ function Tours() {
         </div>
 
         <div className="space-y-5">
-          {selectedGroup ? (
+          {selectedProperty ? (
             <>
               <section className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
                 <div className="grid sm:grid-cols-[220px_1fr]">
-                  <img src={selectedImage} alt={selectedGroup.propertyTitle} className="h-56 w-full object-cover sm:h-full" />
+                  <img src={selectedImage} alt={selectedProperty.title} className="h-56 w-full object-cover sm:h-full" />
                   <div className="p-5">
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Selected property</p>
-                    <h3 className="mt-2 font-serif text-3xl">{selectedGroup.propertyTitle}</h3>
+                    <h3 className="mt-2 font-serif text-3xl">{selectedProperty.title}</h3>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      {selectedProperty?.address} · {selectedProperty?.city}
+                      {selectedProperty.address} · {selectedProperty.city}
                     </p>
 
-                    <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                      <StatPill label="Requests" value={selectedGroup.requests.length} />
-                      <StatPill label="Invited" value={invitedCount} />
-                      <StatPill label="Live now" value={liveCount} />
+                    <div className="mt-4 grid gap-2 sm:grid-cols-4">
+                      <StatPill label="Status" value={currentVideo?.isEnabled ? 1 : 0} />
+                      <StatPill label="Views" value={totalViews} />
+                      <StatPill label="Likes" value={totalLikes} />
+                      <StatPill label="Comments" value={writtenComments.length} />
                     </div>
+
+                    <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                      Status value shows <strong>1</strong> when unlocked and <strong>0</strong> when locked or missing.
+                    </p>
                   </div>
                 </div>
               </section>
@@ -1293,134 +1271,163 @@ function Tours() {
               <section className="rounded-[2rem] border border-border bg-card p-5 shadow-sm">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Client requests</p>
-                    <h3 className="mt-1 font-serif text-2xl">Approve and invite</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Owner controls</p>
+                    <h3 className="mt-1 font-serif text-2xl">Add or update property video</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground">Approval creates the code. Send Code delivers the invite.</p>
+                  <p className="text-xs text-muted-foreground">
+                    This powers the locked video section on the public property page.
+                  </p>
                 </div>
 
-                <div className="mt-4 space-y-3">
-                  {selectedGroup.requests.length ? selectedGroup.requests.map((tour) => {
-                    const meta = videoStatusMeta(tour);
+                <div className="mt-5 grid gap-4">
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Video title</span>
+                    <input
+                      value={title}
+                      onChange={(event) => setTitle(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                      placeholder={`${selectedProperty.title} Video Tour`}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Video URL</span>
+                    <input
+                      value={videoUrl}
+                      onChange={(event) => setVideoUrl(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                      placeholder="Paste MP4, WebM, YouTube, Vimeo, Drive, or hosted video link"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Poster image URL</span>
+                    <input
+                      value={posterUrl}
+                      onChange={(event) => setPosterUrl(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                      placeholder="Optional preview image"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Description</span>
+                    <textarea
+                      value={description}
+                      onChange={(event) => setDescription(event.target.value)}
+                      className="mt-2 min-h-24 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                      placeholder="Owner-recorded walkthrough for this property."
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-background px-4 py-3">
+                    <span>
+                      <span className="block text-sm font-bold">Unlocked for logged-in clients</span>
+                      <span className="block text-xs text-muted-foreground">Turn off to hide/lock the video without deleting it.</span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={isEnabled}
+                      onChange={(event) => setIsEnabled(event.target.checked)}
+                      className="size-5 accent-current"
+                    />
+                  </label>
+
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <button
+                      type="button"
+                      onClick={saveVideo}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-bold text-primary-foreground"
+                    >
+                      <Save className="size-4" /> Save Video
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={toggleLock}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-secondary px-4 py-4 text-sm font-bold"
+                    >
+                      <LockKeyhole className="size-4" /> {currentVideo?.isEnabled ? "Lock Video" : "Unlock Video"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={deleteVideo}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-card px-4 py-4 text-sm font-bold text-destructive"
+                    >
+                      <Trash2 className="size-4" /> Remove Video
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-[2rem] border border-border bg-card p-5 shadow-sm">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Client activity</p>
+                    <h3 className="mt-1 font-serif text-2xl">Views, likes, and comments</h3>
+                  </div>
+                  <Link
+                    to="/property/$id"
+                    params={{ id: selectedProperty.id }}
+                    className="rounded-full border border-border bg-secondary px-4 py-2 text-xs font-bold"
+                  >
+                    Open Property Page
+                  </Link>
+                </div>
+
+                <div className="mt-4 grid gap-3">
+                  {selectedViews.length ? selectedViews.map((view) => {
+                    const feedback = selectedComments.find((comment) =>
+                      (view.clientId && comment.clientId === view.clientId) ||
+                      comment.clientEmail.toLowerCase() === view.clientEmail.toLowerCase(),
+                    );
 
                     return (
-                      <article key={tour.id} className="rounded-3xl border border-border bg-background p-4">
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                          <div className="min-w-0">
-                            <p className="font-semibold">{tour.name}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">{tour.email || "No email saved"} · {tour.date} · {tour.time}</p>
-                            {tour.videoAccessCode ? (
-                              <p className="mt-2 font-mono text-xs font-black tracking-[0.18em] text-foreground">{tour.videoAccessCode}</p>
-                            ) : null}
+                      <article key={view.id} className="rounded-3xl border border-border bg-background p-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="font-semibold">{view.clientName}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{view.clientEmail}</p>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              Viewed {view.viewCount} time{view.viewCount === 1 ? "" : "s"} · Last viewed {new Date(view.viewedAt).toLocaleString()}
+                            </p>
                           </div>
-
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${meta.badge}`}>{meta.label}</span>
-
-                            <button
-                              type="button"
-                              onClick={() => approveClient(tour)}
-                              className={`rounded-full px-4 py-2 text-xs font-bold ${
-                                tour.videoAccessCode ? "bg-blue-100 text-blue-800" : "bg-blue-700 text-white"
-                              }`}
-                            >
-                              {tour.videoAccessCode ? "Approved ✓" : "Approval"}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => sendInvite(tour)}
-                              className={`rounded-full px-4 py-2 text-xs font-bold ${
-                                tour.videoCodeSentAt ? "bg-green-600 text-white" : "bg-primary text-primary-foreground"
-                              }`}
-                            >
-                              {tour.videoCodeSentAt ? "Sent ✓" : "Send Code"}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => { deleteTourRequest(tour.id); toast.success("Request removed."); }}
-                              className="rounded-full border border-destructive/30 px-4 py-2 text-xs font-bold text-destructive"
-                            >
-                              Remove
-                            </button>
-                          </div>
+                          <span className={`w-fit rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                            feedback?.liked ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+                          }`}>
+                            {feedback?.liked ? "Liked" : "No like"}
+                          </span>
                         </div>
 
-                        {tour.videoClientMessageText ? (
-                          <p className="mt-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-xs leading-5 text-green-900">
-                            Sent message: {tour.videoClientMessageText}
+                        {feedback?.comment ? (
+                          <p className="mt-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm leading-6">
+                            {feedback.comment}
                           </p>
                         ) : null}
                       </article>
                     );
                   }) : (
                     <div className="rounded-3xl border border-dashed border-border bg-background p-5 text-sm leading-6 text-muted-foreground">
-                      No clients have requested a video tour for this property yet.
+                      No logged-in client has viewed this property video yet.
                     </div>
                   )}
-                </div>
-              </section>
 
-              <section className={`rounded-[2rem] border p-5 shadow-sm ${liveCount ? "border-green-300 bg-green-50 text-green-950" : "border-border bg-card text-foreground"}`}>
-                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">Property live room</p>
-                    <h3 className="mt-2 font-serif text-3xl">
-                      {liveCount ? "Live room is available" : endedCount ? "Live room ended" : "Live room waiting"}
-                    </h3>
-                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                      Start Live opens the room for every invited client for this property. End Live closes it for everyone and sends them to feedback.
-                    </p>
-                  </div>
-
-                  <div className={`grid min-h-[220px] place-items-center rounded-[2rem] border-2 p-6 text-center ${
-                    liveCount ? "border-green-500 bg-green-950 text-green-50" : "border-red-300 bg-red-950 text-red-50"
-                  }`}>
-                    {liveCount ? (
-                      <div>
-                        <div className="mx-auto grid size-16 place-items-center rounded-full bg-green-500 text-3xl">▶</div>
-                        <h4 className="mt-4 font-serif text-3xl">Available</h4>
-                        <p className="mt-2 text-xs text-green-100/80">Approved clients can tune in through /tours/live.</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="mx-auto grid size-16 place-items-center rounded-full bg-red-600 text-3xl">🔒</div>
-                        <h4 className="mt-4 font-serif text-3xl">Locked</h4>
-                        <p className="mt-2 text-xs text-red-100/80">Clients can wait with a code, but cannot view until Start Live.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-2 sm:grid-cols-3">
-                  <button
-                    type="button"
-                    onClick={startPropertyLive}
-                    className="rounded-2xl bg-green-600 px-4 py-4 text-sm font-bold text-white"
-                  >
-                    Start Live For Property
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={endPropertyLive}
-                    className="rounded-2xl bg-purple-700 px-4 py-4 text-sm font-bold text-white"
-                  >
-                    End Live For Everyone
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={closePastEvent}
-                    className="rounded-2xl border border-slate-300 bg-white px-4 py-4 text-sm font-bold text-slate-900"
-                  >
-                    Archive Past Event
-                  </button>
+                  {!selectedViews.length && writtenComments.length ? writtenComments.map((comment) => (
+                    <article key={comment.id} className="rounded-3xl border border-border bg-background p-4">
+                      <p className="font-semibold">{comment.clientName}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{comment.clientEmail}</p>
+                      <p className="mt-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm leading-6">{comment.comment}</p>
+                    </article>
+                  )) : null}
                 </div>
               </section>
             </>
-          ) : null}
+          ) : (
+            <section className="rounded-[2rem] border border-border bg-card p-6 text-sm text-muted-foreground shadow-sm">
+              Add an active property first, then property video controls will appear here.
+            </section>
+          )}
         </div>
       </section>
     </div>
