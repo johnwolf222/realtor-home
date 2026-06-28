@@ -116,7 +116,7 @@ function OnboardingPage() {
         <section className="grid gap-3">
           <ToggleRow icon={HeartHandshake} title="Concierge lead flow" text="Guide members toward chat, tours, and contact." checked={concierge} onChange={setConcierge} />
           <ToggleRow icon={ClipboardList} title="Document-ready portal" text="Show document upload/review placeholders." checked={docs} onChange={setDocs} />
-          <ToggleRow icon={Building2} title="Video consultation ready" text="Show Zoom/video tour placeholders." checked={video} onChange={setVideo} />
+          <ToggleRow icon={Building2} title="Property video ready" text="Show property video placeholders." checked={video} onChange={setVideo} />
         </section>
 
         <div className="grid gap-3 sm:grid-cols-2">

@@ -288,7 +288,7 @@ function PropertyDetail() {
 
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <MiniAction href={`/chat?propertyId=${property.id}&action=document`} icon={FileText} label="Documents" note="Upload/review" />
-                <MiniAction href="#property-video-tour" icon={Video} label="Video Tour" note="Login locked" />
+                <MiniAction href="#property-video-tour" icon={Video} label="Property Video" note="Login locked" />
               </div>
 
               <div className="mt-5 rounded-2xl border border-border bg-background p-4">
@@ -500,8 +500,8 @@ function PropertyVideoTourPanel({ propertyId, propertyTitle }: { propertyId: str
         </div>
 
         <div className="p-5 sm:p-6">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">Property Video Tour</p>
-          <h2 className="mt-2 font-serif text-3xl">{videoTour?.title || `${propertyTitle} Video Tour`}</h2>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">Property Video</p>
+          <h2 className="mt-2 font-serif text-3xl">{videoTour?.title || `${propertyTitle} Property Video`}</h2>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
             {videoTour?.description || "Owner-recorded property videos appear here and stay locked until the client is logged in."}
           </p>
@@ -567,7 +567,7 @@ function PropertyVideoTourPanel({ propertyId, propertyTitle }: { propertyId: str
                   id="property-video-comment"
                   value={comment}
                   onChange={(event) => setComment(event.target.value)}
-                  placeholder={clientFeedback?.comment || "Ask a question or leave a note about this video tour..."}
+                  placeholder={clientFeedback?.comment || "Ask a question or leave a note about this property video..."}
                   className="mt-2 min-h-24 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-primary"
                   maxLength={500}
                 />

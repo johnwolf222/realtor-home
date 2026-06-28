@@ -22,7 +22,6 @@ import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ToursLiveRouteImport } from './routes/tours.live'
 import { Route as PropertyIdRouteImport } from './routes/property.$id'
 
 const ToursRoute = ToursRouteImport.update({
@@ -90,11 +89,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToursLiveRoute = ToursLiveRouteImport.update({
-  id: '/live',
-  path: '/live',
-  getParentRoute: () => ToursRoute,
-} as any)
 const PropertyIdRoute = PropertyIdRouteImport.update({
   id: '/property/$id',
   path: '/property/$id',
@@ -114,9 +108,8 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tours': typeof ToursRouteWithChildren
+  '/tours': typeof ToursRoute
   '/property/$id': typeof PropertyIdRoute
-  '/tours/live': typeof ToursLiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -131,9 +124,8 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tours': typeof ToursRouteWithChildren
+  '/tours': typeof ToursRoute
   '/property/$id': typeof PropertyIdRoute
-  '/tours/live': typeof ToursLiveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,9 +141,8 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tours': typeof ToursRouteWithChildren
+  '/tours': typeof ToursRoute
   '/property/$id': typeof PropertyIdRoute
-  '/tours/live': typeof ToursLiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,7 +161,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tours'
     | '/property/$id'
-    | '/tours/live'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -187,7 +177,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tours'
     | '/property/$id'
-    | '/tours/live'
   id:
     | '__root__'
     | '/'
@@ -204,7 +193,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tours'
     | '/property/$id'
-    | '/tours/live'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,7 +208,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SavedRoute: typeof SavedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ToursRoute: typeof ToursRouteWithChildren
+  ToursRoute: typeof ToursRoute
   PropertyIdRoute: typeof PropertyIdRoute
 }
 
@@ -317,13 +305,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tours/live': {
-      id: '/tours/live'
-      path: '/live'
-      fullPath: '/tours/live'
-      preLoaderRoute: typeof ToursLiveRouteImport
-      parentRoute: typeof ToursRoute
-    }
     '/property/$id': {
       id: '/property/$id'
       path: '/property/$id'
@@ -333,16 +314,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface ToursRouteChildren {
-  ToursLiveRoute: typeof ToursLiveRoute
-}
-
-const ToursRouteChildren: ToursRouteChildren = {
-  ToursLiveRoute: ToursLiveRoute,
-}
-
-const ToursRouteWithChildren = ToursRoute._addFileChildren(ToursRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -357,7 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SavedRoute: SavedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ToursRoute: ToursRouteWithChildren,
+  ToursRoute: ToursRoute,
   PropertyIdRoute: PropertyIdRoute,
 }
 export const routeTree = rootRouteImport

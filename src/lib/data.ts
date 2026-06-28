@@ -261,14 +261,11 @@ export interface TourRequest {
   property: string;
   date: string;
   time: string;
-  type: "In Person" | "Video Tour";
+  type: "In Person";
   status: "Requested" | "Confirmed";
-  videoAccessCode?: string;
-  videoSessionStatus?: "requested" | "approved" | "locked" | "live" | "ended" | "closed";
   videoCodeCreatedAt?: string;
   videoClientMessageText?: string;
   videoClientMessageSentAt?: string;
-  videoCodeSentAt?: string;
   videoOwnerStartedAt?: string;
   videoOwnerEndedAt?: string;
   videoLikes?: number;
@@ -304,7 +301,7 @@ export const tourRequests: TourRequest[] = [
     property: "The Vista Penthouse",
     date: "Mon, Jun 22",
     time: "5:00 PM",
-    type: "Video Tour",
+    type: "In Person",
     status: "Requested",
   },
 ];

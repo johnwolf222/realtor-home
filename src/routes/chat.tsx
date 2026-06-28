@@ -2344,7 +2344,7 @@ function ChatRoom() {
             thread.id,
             "realtor",
             isVideoTourMessage
-              ? `Yes — you can view a property video for ${selectedHome.title} if video tour options are available.`
+              ? `Yes — you can view the property video for ${selectedHome.title} if the owner has created one. If not, the best next step is to schedule an in-person tour.`
               : `You can schedule an in-person tour for ${selectedHome.title} if tour options are available.`,
           );
           return;
@@ -2361,7 +2361,7 @@ function ChatRoom() {
             thread.id,
             "realtor",
             isVideoTourMessage
-              ? "Yes — video tours may be available. Select a property card below to view a property video, or view all listings to choose a home."
+              ? "Yes — property videos live under each property page when the owner has created them. If a video is not available yet, schedule an in-person tour so you can see the home directly."
               : "You can schedule an in-person tour if tour options are available. Select a property card below or view all listings to choose a home.",
           );
           return;
@@ -2433,7 +2433,7 @@ function ChatRoom() {
             }
 
             if (isVideoTourMessage) {
-              return "Yes — video tours may be available. Select a property card below to view a property video, or view all listings to choose a home.";
+              return "Yes — property videos live under each property page when the owner has created them. If a video is not available yet, schedule an in-person tour so you can see the home directly.";
             }
 
             if (isLiveTourMessage) {

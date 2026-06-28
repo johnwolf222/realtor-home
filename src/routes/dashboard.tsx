@@ -1101,7 +1101,7 @@ function Tours() {
 
     const video = propertyVideoTours.find((tour) => tour.propertyId === selectedProperty.id);
 
-    setTitle(video?.title || `${selectedProperty.title} Video Tour`);
+    setTitle(video?.title || `${selectedProperty.title} Property Video`);
     setDescription(video?.description || "Owner-recorded walkthrough for this property.");
     setVideoUrl(video?.videoUrl || "");
     setPosterUrl(video?.posterUrl || "");
@@ -1286,7 +1286,7 @@ function Tours() {
                       value={title}
                       onChange={(event) => setTitle(event.target.value)}
                       className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-                      placeholder={`${selectedProperty.title} Video Tour`}
+                      placeholder={`${selectedProperty.title} Property Video`}
                     />
                   </label>
 
@@ -1582,7 +1582,7 @@ function AIConcierge() {
             </label>
             <label className="flex items-start gap-3 rounded-2xl bg-secondary p-4">
               <input type="checkbox" checked={form.enableOwnerHandoff} onChange={(e) => set("enableOwnerHandoff", e.target.checked)} className="mt-1 size-4 accent-primary" />
-              <span><span className="block text-sm font-semibold">Private follow-up alerts</span><span className="text-xs leading-5 text-muted-foreground">Create private alerts for serious members, document uploads, video requests, tours, and offer intent.</span></span>
+              <span><span className="block text-sm font-semibold">Private follow-up alerts</span><span className="text-xs leading-5 text-muted-foreground">Create private alerts for serious members, document uploads, property video comments, tours, and offer intent.</span></span>
             </label>
             <P label={`Private follow-up threshold: ${form.handoffScore}/100`}><input type="range" min="25" max="95" value={form.handoffScore} onChange={(e) => set("handoffScore", Number(e.target.value))} className="w-full accent-primary" /></P>
           </div>
@@ -1603,7 +1603,7 @@ function AIConcierge() {
           <P label="Property facts and amenities">
             <textarea value={form.propertyKnowledge} onChange={(e) => set("propertyKnowledge", e.target.value)} rows={7} className="ev-input resize-none" />
           </P>
-          <P label="Tour and video tour rules">
+          <P label="Tour and property video rules">
             <textarea value={form.tourKnowledge} onChange={(e) => set("tourKnowledge", e.target.value)} rows={7} className="ev-input resize-none" />
           </P>
           <P label="Website support knowledge">
@@ -1636,7 +1636,7 @@ function AIConcierge() {
                 "Amenities",
                 "City & address",
                 "Tours",
-                "Video tours",
+                "Property videos",
                 "Verification",
                 "Account help",
                 "Saved homes",
@@ -1668,7 +1668,7 @@ function AIConcierge() {
                 <span className="font-bold"> Category | keywords | approved response | button label | link</span>
               </p>
               <p className="mt-2">
-                Example: <span className="font-bold">Video Tours | video tour, virtual tour | If you cannot visit in person, you can request a video tour. | Request Video Tour | /tours</span>
+                Example: <span className="font-bold">Property Videos | property video, virtual tour | Property videos live under each listing when added by the owner. If no video exists yet, suggest scheduling an in-person tour. | View Property Video | /listings</span>
               </p>
             </div>
 
@@ -1677,7 +1677,7 @@ function AIConcierge() {
               onChange={(e) => set("chatKnowledgeRules", e.target.value)}
               rows={14}
               className="ev-input resize-none font-mono text-xs leading-6"
-              placeholder={"Category | keywords | approved response | button label | link\nVideo Tours | video tour, virtual tour | You can request a video tour. | Request Video Tour | /tours"}
+              placeholder={"Category | keywords | approved response | button label | link\nProperty Videos | property video, virtual tour | Property videos live under each listing when added by the owner. If no video exists yet, suggest scheduling an in-person tour. | View Property Video | /listings"}
             />
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2">

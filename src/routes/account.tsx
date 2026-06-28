@@ -756,7 +756,7 @@ function MemberMessagesCard({ messages }: { messages: MemberPortalMessage[] }) {
           <p className="section-kicker"><MessageCircle className="size-3.5" /> Messages & notifications</p>
           <h2 className="mt-3 font-serif text-3xl">Owner messages for your account.</h2>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Private video tour codes and owner updates appear here when they are sent to your account.
+            Owner updates, property video activity, and private follow-up messages appear here when they are sent to your account.
           </p>
         </div>
 
@@ -764,8 +764,8 @@ function MemberMessagesCard({ messages }: { messages: MemberPortalMessage[] }) {
           <Link to="/chat" className="rounded-full border border-border bg-card px-4 py-2 text-xs font-bold shadow-sm hover:bg-secondary">
             Open Chat
           </Link>
-          <Link to="/tours/live" className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm">
-            Open Live Room
+          <Link to="/listings" className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm">
+            View Listings
           </Link>
         </div>
       </div>
@@ -784,7 +784,7 @@ function MemberMessagesCard({ messages }: { messages: MemberPortalMessage[] }) {
 
                 {message.code ? (
                   <div className="rounded-2xl border border-green-200 bg-white px-4 py-3 text-center shadow-sm">
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-green-700">Video code</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-green-700">Owner note</p>
                     <p className="mt-1 font-mono text-lg font-black tracking-[0.2em] text-green-950">{message.code}</p>
                   </div>
                 ) : null}
@@ -795,7 +795,7 @@ function MemberMessagesCard({ messages }: { messages: MemberPortalMessage[] }) {
           ))
         ) : (
           <div className="rounded-3xl border border-dashed border-border bg-background p-5 text-sm leading-6 text-muted-foreground">
-            No owner messages yet. When the owner sends a private video tour code or account update, it will appear here.
+            No owner messages yet. When the owner sends a property video update or account update, it will appear here.
           </div>
         )}
       </div>
@@ -808,7 +808,7 @@ function MemberActions({ savedHomes, fallbackHomes }: { savedHomes: Property[]; 
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
         <ActionCard to="/listings" icon={Home} title="Browse Homes" text="Search and save homes that match your preferences." />
-        <ActionCard to="/tours" icon={CalendarClock} title="Request Tours" text="Book private showings and video consultations." />
+        <ActionCard to="/tours" icon={CalendarClock} title="Request Tours" text="Book private showings. Property videos live under each listing when added by the owner." />
         <ActionCard to="/chat" icon={MessageCircle} title="Start Chat" text="Ask questions and prepare documents for review." />
       </div>
       <div className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">

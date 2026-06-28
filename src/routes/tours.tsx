@@ -75,7 +75,7 @@ function Tours() {
               <p className="section-kicker"><CalendarClock className="size-3.5" /> Private appointments</p>
               <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Schedule an in-person tour</h2>
               <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                Request a private showing for the property you want to see. Property video tours now live directly on each property page and stay locked until the client is logged in.
+                Request a private showing for the property you want to see. Property videos now live directly on each property page and stay locked until the client is logged in.
               </p>
 
               <div className="mt-6 rounded-[1.5rem] border border-primary/20 bg-primary/5 p-5">
@@ -84,7 +84,7 @@ function Tours() {
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Looking for video?</p>
                     <h3 className="mt-1 font-serif text-2xl">Open the property page video section</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Video tours are no longer requested here. Choose a property and view its locked video tour from the property page.
+                      Property videos are no longer requested here. Choose a property and view its locked property video from the property page.
                     </p>
                   </div>
 
@@ -102,7 +102,7 @@ function Tours() {
             </div>
 
             <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm sm:p-8">
-              <h3 className="font-serif text-2xl">Property video tours</h3>
+              <h3 className="font-serif text-2xl">Property videos</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Owner-recorded property videos are managed in the owner dashboard and appear under each individual listing. Logged-in clients can watch, like, comment, and create view history for the owner.
               </p>
@@ -184,7 +184,7 @@ function Tours() {
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Also available</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {selectedVideo ? "This property has a login-locked video tour." : "The owner has not added a video for this property yet."}
+                          {selectedVideo ? "This property has a login-locked property video." : "The owner has not added a video for this property yet."}
                         </p>
                       </div>
                       <a href={`/property/${selectedProperty.id}#property-video-tour`} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-bold">

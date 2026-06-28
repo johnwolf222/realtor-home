@@ -336,8 +336,8 @@ function localChatRuleResponse(input: SeriousConciergeInput): SeriousConciergeRe
     return reply(
       "greeting",
       firstName
-        ? `Hi ${firstName} — I can help you search homes, check prices, compare bedrooms and bathrooms, look for amenities, schedule tours, request video tours, verify your account, or contact ${input.realtor.name}.`
-        : `Hi — I can help you search homes, check prices, compare bedrooms and bathrooms, look for amenities, schedule tours, request video tours, verify your account, or contact ${input.realtor.name}.`,
+        ? `Hi ${firstName} — I can help you search homes, check prices, compare bedrooms and bathrooms, look for amenities, schedule tours, view property videos, verify your account, or contact ${input.realtor.name}.`
+        : `Hi — I can help you search homes, check prices, compare bedrooms and bathrooms, look for amenities, schedule tours, view property videos, verify your account, or contact ${input.realtor.name}.`,
       ["view_all"],
     );
   }
@@ -349,10 +349,10 @@ function localChatRuleResponse(input: SeriousConciergeInput): SeriousConciergeRe
   if (hasKeyword(clean, ["video tour", "virtual tour", "zoom tour", "remote tour", "facetime"])) {
     return reply(
       "video_tour",
-      `${prefix}yes — if you cannot make it in person, you can request a video tour. I can guide you to the video tour scheduling option${selected ? ` for ${selected.title}` : matches.length ? " for one of the suggested homes" : ""}.`,
+      `${prefix}yes — if you cannot make it in person, you can view a property video. I can guide you to the property video section${selected ? ` for ${selected.title}` : matches.length ? " for one of the suggested homes" : ""}.`,
       ["video_tour", "schedule_tour"],
       76,
-      `Visitor asked about a video tour: "${message}"`,
+      `Visitor asked about a property video: "${message}"`,
     );
   }
 
@@ -663,7 +663,7 @@ function fallbackResponse(input: SeriousConciergeInput, mode: SeriousConciergeRe
   } else if (intent === "tour") {
     message = `${prefix}a tour makes sense once the home fits your basics. Which property are you considering?`;
   } else if (intent === "video_tour") {
-    message = `${prefix}a video tour is a good first step if you want a clearer look before going in person.`;
+    message = `${prefix}a property video can help when the owner has created one. If no property video is available yet, scheduling an in-person tour is the best next step.`;
   } else if (intent === "contact") {
     message = `${prefix}the cleanest move is to contact ${input.realtor.name} directly for anything time-sensitive or property-specific.`;
   } else if (intent === "verification") {
@@ -720,7 +720,7 @@ function buildSystemPrompt(input: SeriousConciergeInput) {
 MAIN VISION
 You are a smart real estate website concierge, not a generic chatbot.
 You understand the website experience and help visitors take the next useful step.
-You can discuss listings, property details, price ranges, tours, video tours, contact options, verification, account features, saved homes, liked properties, document uploads, appointments, and general website navigation.
+You can discuss listings, property details, price ranges, tours, property videos, contact options, verification, account features, saved homes, liked properties, document uploads, appointments, and general website navigation.
 
 PERSONALITY
 Professional, warm, lightly bubbly, caring, and clear.
@@ -760,7 +760,7 @@ TOUR RULES
 If the visitor asks to schedule a tour, include schedule_tour.
 If they ask about a specific property, connect the tour to that property when possible.
 If they ask generally, guide them to choose a property or offer a general appointment path.
-If they cannot attend in person, explain that video tours are available and include video_tour.
+If they cannot attend in person, explain that property videos may be available under each listing when the owner has added them and include video_tour.
 
 CONTACT RULES
 If the visitor asks how to contact the realtor, provide the available contact path using the provided realtor information.
@@ -798,13 +798,15 @@ SITE FACTS YOU CAN USE
 There are ${activeCount} active properties currently visible in the provided listing data.
 Service area: ${input.settings?.serviceArea || "Georgia"}
 Owner-controlled public knowledge:
-${input.settings?.publicKnowledge || "Use only listing facts, tour options, video tour options, contact information, verification steps, document-upload context, account features, and general buying process information provided in the request."}
+${input.settings?.publicKnowledge || "Use only listing facts, tour options, property video options, contact information, verification steps, document-upload context, account features, and general buying process information provided in the request."}
 
 Property facts and amenities knowledge:
 ${input.settings?.propertyKnowledge || "Use real listing facts only. Do not invent amenities, prices, availability, address, square footage, garage, basement, pool, balcony, kitchen, appliances, or property details that are not provided."}
 
-Tour and video tour knowledge:
-${input.settings?.tourKnowledge || "Users can request in-person tours, private showings, open house information when available, and video tours for remote viewing."}
+Tour and property video knowledge:
+${input.settings?.tourKnowledge || "Users can request in-person tours, private showings, open house information when available, and property videos for remote viewing when the owner has added them."}
+Property video availability rule:
+Never imply an owner-created property video definitely exists unless the site data clearly provides one. If video availability is unclear or missing, say the owner has not added a property video yet and suggest scheduling an in-person tour.
 
 Website support knowledge:
 ${input.settings?.websiteSupportKnowledge || "Users can create accounts, log in, verify identity, save homes, like properties, request information, contact the realtor, submit documents, schedule appointments, request tours, and use chat for property questions."}
