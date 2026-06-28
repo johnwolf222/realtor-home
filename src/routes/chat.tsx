@@ -2590,13 +2590,15 @@ function ChatRoom() {
             .slice(0, 6)
         : properties.slice(0, 6);
 
-      setLastPropertyCards(matchingProperties.slice(0, 3));
+      // Do not render property cards here yet. The current card strip is unstable in this route.
+      // Keep the chat useful with safe action buttons until the card system is rebuilt cleanly.
+      setLastPropertyCards([]);
       setLastActions(["View Listings", "Schedule Tour", "Contact Realtor"]);
 
       if (matchingProperties.length) {
         const reply = directBudgetAmount
-          ? `I found homes under ${formatShortcutPrice(directBudgetAmount)}. Select a property card to view details, schedule a tour, or view a property video.`
-          : "Here are available Atlanta-area homes. Select a property card to view details, pricing, tours, or property video options.";
+          ? `I found homes under ${formatShortcutPrice(directBudgetAmount)}. Use the options below to view listings, schedule a tour, or contact the realtor.`
+          : "Here are available Atlanta-area homes. Use the options below to view listings, schedule a tour, or contact the realtor.";
 
         addChatMessage(thread.id, "realtor", reply);
       } else {
