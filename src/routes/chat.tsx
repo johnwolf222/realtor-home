@@ -1833,6 +1833,40 @@ function simpleGreetingReply(message: string, name?: string | null) {
 }
 
 
+function parseDirectBudgetShortcut(message: string) {
+  const clean = normalizeBudgetTourText(message);
+  const directBudgetOnly = /^\$?\s*\d+(?:\.\d+)?\s*(k|m|million|thousand)?$/.test(clean);
+  const propertyBudgetPhrase = /\b(under|below|less than|max|maximum|budget|price|prices|homes?|houses?|properties?|listings?)\b/.test(clean);
+
+  if (!directBudgetOnly && !propertyBudgetPhrase) return null;
+
+  const match = clean.match(/\$?\s*(\d+(?:\.\d+)?)\s*(k|m|million|thousand)?\b/);
+  if (!match) return null;
+
+  const numeric = Number(match[1]);
+  if (!Number.isFinite(numeric) || numeric <= 0) return null;
+
+  const suffix = match[2] || "";
+  if (suffix === "m" || suffix === "million") return Math.round(numeric * 1000000);
+  if (suffix === "k" || suffix === "thousand") return Math.round(numeric * 1000);
+
+  return numeric < 10000 ? Math.round(numeric * 1000) : Math.round(numeric);
+}
+
+function isCityHomeShortcut(message: string) {
+  const clean = normalizeBudgetTourText(message);
+  return /\b(atlanta|atl|georgia|ga)\b/.test(clean) && /\b(homes?|houses?|properties?|listings?)\b/.test(clean);
+}
+
+function formatShortcutPrice(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+
 function hasSelectedPropertyInUrl() {
   if (typeof window === "undefined") return false;
   return new URLSearchParams(window.location.search).has("propertyId");
@@ -2518,7 +2552,7 @@ function ChatRoom() {
       addChatMessage(
         thread.id,
         "realtor",
-        "I’m not sure I understood that. I can help with property listings, pricing, tours, Client ID Verification, account support, saved homes, or contacting the realtor.",
+        "I’m here with you. I can help with property listings, pricing, tours, Client ID Verification, account support, saved homes, or contacting the realtor. What would you like to do next?",
       );
     } finally {
       setIsThinking(false);
@@ -2535,6 +2569,48 @@ function ChatRoom() {
     touchChatSession();
     addChatMessage(thread.id, "member", clean);
     setText("");
+
+    const immediateGreetingReply = simpleGreetingReply(clean, lead?.name);
+    if (immediateGreetingReply) {
+      setLastPropertyCards([]);
+      setLastActions(["View Listings", "Schedule Tour", "Contact Realtor"]);
+      addChatMessage(thread.id, "realtor", immediateGreetingReply);
+      markChatSessionActive(thread.id);
+      return;
+    }
+
+    const directBudgetAmount = parseDirectBudgetShortcut(clean);
+    const cityHomeShortcut = isCityHomeShortcut(clean);
+
+    if (directBudgetAmount || cityHomeShortcut) {
+      const matchingProperties = directBudgetAmount
+        ? properties
+            .filter((property) => property.price <= directBudgetAmount)
+            .sort((a, b) => b.price - a.price)
+            .slice(0, 6)
+        : properties.slice(0, 6);
+
+      setLastPropertyCards(matchingProperties.slice(0, 3));
+      setLastActions(["View Listings", "Schedule Tour", "Contact Realtor"]);
+
+      if (matchingProperties.length) {
+        const reply = directBudgetAmount
+          ? `I found homes under ${formatShortcutPrice(directBudgetAmount)}. Select a property card to view details, schedule a tour, or view a property video.`
+          : "Here are available Atlanta-area homes. Select a property card to view details, pricing, tours, or property video options.";
+
+        addChatMessage(thread.id, "realtor", reply);
+      } else {
+        const reply = directBudgetAmount
+          ? `I do not see homes under ${formatShortcutPrice(directBudgetAmount)} right now. You can view all listings, adjust the budget, or contact the realtor for off-market options.`
+          : "I do not see matching Atlanta homes right now. You can view all listings or contact the realtor for help.";
+
+        addChatMessage(thread.id, "realtor", reply);
+      }
+
+      markChatSessionActive(thread.id);
+      return;
+    }
+
     void pushAiReply(clean);
   };
 
@@ -2556,17 +2632,38 @@ function ChatRoom() {
   };
 
   const videoRequest = () => {
-    if (!lead) return;
-    if (sessionTimedOut) {
-      toast("Start a new chat session to view a property video.", { icon: "⏱️" });
-      return;
-    }
+    if (!thread?.id) return;
+
+    const interest = thread.property || lead?.interest || selectedPropertyTitleOnlyFromUrl() || "the selected property";
+    const selectedVideoProperty = properties.find((property) => property.title === interest) ||
+      (hasSelectedPropertyInUrl() ? selectedPropertyFromUrl() : undefined);
+
+    const capture = {
+      ...(lead || {
+        name: "Private Member",
+        email: "member@example.com",
+        phone: "Not provided",
+        timeline: "Not specified",
+        budget: "Not specified",
+        interest,
+      }),
+      interest,
+      source: "Chat video request",
+      message: `Video consultation requested for ${interest}.`,
+    };
+
     touchChatSession();
-    requestVideoCall(lead);
-    toast.success("Video consultation requested.");
-    if (thread?.id) {
-      void pushAiReply("I want to view a property video");
-    }
+    requestVideoCall(capture);
+    setLastPropertyCards(selectedVideoProperty?.id ? [selectedVideoProperty] : []);
+    setLastActions(["Schedule Tour", "View Listings", "Contact Realtor"]);
+    addChatMessage(thread.id, "member", `🎥 Video consultation requested for ${interest}.`);
+    addChatMessage(
+      thread.id,
+      "realtor",
+      `The owner has been notified. Your video request for ${interest} is saved in the owner dashboard. If the property video is not posted yet, you can also schedule an in-person showing.`,
+    );
+    markChatSessionActive(thread.id);
+    toast.success("The owner has been notified.");
   };
 
   const selectedPropertyId = activeProperties.find((property) => property.title === thread?.property)?.id || activeProperties[0]?.id || "";

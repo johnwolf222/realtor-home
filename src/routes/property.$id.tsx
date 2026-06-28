@@ -490,9 +490,9 @@ function PropertyVideoTourPanel({ propertyId, propertyTitle }: { propertyId: str
                 <div className="mx-auto grid size-16 place-items-center rounded-full bg-white text-slate-950">
                   <Video className="size-8" />
                 </div>
-                <h3 className="mt-4 font-serif text-3xl">No property video yet</h3>
+                <h3 className="mt-4 font-serif text-3xl">Video tour Coming Soon</h3>
                 <p className="mt-2 text-sm leading-6 text-white/70">
-                  The owner can add or remove this property video when ready.
+                  All members will be notified when posted.
                 </p>
               </div>
             </div>
