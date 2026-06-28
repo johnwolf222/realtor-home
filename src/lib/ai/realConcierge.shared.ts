@@ -11,7 +11,7 @@ function actionLabel(action: SeriousConciergeAction) {
     case "schedule_tour":
       return "Schedule a private tour";
     case "video_tour":
-      return "Request a video tour";
+      return "View property video";
     case "contact_call":
       return "Call Elena";
     case "contact_email":
@@ -37,7 +37,7 @@ function titleFor(intent: SeriousConciergeResponse["intent"], hasProperties: boo
     case "tour":
       return "Tour options";
     case "video_tour":
-      return "Video tour options";
+      return "Property video options";
     case "contact":
       return "Contact Elena";
     case "verification":
@@ -60,7 +60,7 @@ function buttonForAction(action: SeriousConciergeAction, propertyId: string, pro
     case "schedule_tour":
       return { label: actionLabel(action), href: propertyId ? `/tours?propertyId=${propertyId}` : "/tours", kind: "primary" };
     case "video_tour":
-      return { label: actionLabel(action), href: propertyId ? `/tours?propertyId=${propertyId}&mode=video` : "/tours?mode=video", kind: "primary" };
+      return { label: actionLabel(action), href: propertyId ? `/property/${propertyId}#property-video-tour` : "/listings", kind: "primary" };
     case "contact_call":
       return { label: actionLabel(action), href: `tel:${profile.phone}`, kind: "primary" };
     case "contact_email":

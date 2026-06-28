@@ -44,7 +44,7 @@ const verificationKeywords = ["verify", "verified", "verification", "id", "ident
 export const memberQuickPrompts = [
   "Show me homes under $2M",
   "Can I schedule a private tour?",
-  "Can we do a video tour?",
+  "Can we do a property video?",
   "How do I contact Elena?",
   "How do I verify my account?",
   "Compare this with similar homes.",
@@ -173,7 +173,7 @@ function opening(lead: LeadCapture | null, intent: ConciergeIntent) {
     case "tour":
       return `${firstName}, yes — seeing it in person would answer the right questions.`;
     case "video":
-      return `${firstName}, a video tour is a practical first step.`;
+      return `${firstName}, a property video is a practical first step.`;
     case "documents":
       return `${firstName}, yes. Keep the paperwork simple until there is a clear reason to share more.`;
     case "monthly-cost":
@@ -361,7 +361,7 @@ function propertyActionCard(property: Property, title = "Next steps for this pro
     buttons: [
       { label: "View property", href: `/property/${property.id}`, kind: "secondary" },
       { label: "Schedule private tour", href: `/tours?propertyId=${property.id}`, kind: "primary" },
-      { label: "Request video tour", href: `/tours?propertyId=${property.id}&mode=video`, kind: "secondary" },
+      { label: "View property video", href: `/property/${property.id}#property-video-tour`, kind: "secondary" },
     ],
   };
 }
@@ -392,7 +392,7 @@ export function buildConciergeReply(args: {
 
   switch (intent) {
     case "greeting":
-      body = "What would you like to do today? You can ask me to find homes by budget or location, schedule a private tour, set up a video tour, contact Elena, or help with account verification.";
+      body = "What would you like to do today? You can ask me to find homes by budget or location, schedule a private tour, open a property video, contact Elena, or help with account verification.";
       actions.push("Show me homes under $2M", "Schedule a private tour", "Contact Elena");
       actionCard = {
         title: "How can I help?",
@@ -419,16 +419,16 @@ export function buildConciergeReply(args: {
       break;
     case "tour":
       body = `${details}\n\nA tour makes sense when the home already fits on paper. In person, pay attention to the flow, privacy, light, room scale, and whether the home still feels worth the price.`;
-      actions.push("Schedule a private tour", "Ask for open house windows", "Request video instead");
+      actions.push("Schedule a private tour", "Ask for open house windows", "View property video");
       actionCard = propertyActionCard(property);
       break;
     case "video":
-      body = `${details}\n\nA video tour is useful when you cannot make it in person or want a cleaner first look before committing time. Ask to see the parts photos usually hide: approach, street feel, room transitions, storage, outdoor privacy, and natural light.`;
-      actions.push("Request video tour", "Ask for layout walkthrough", "Schedule in person later");
+      body = `${details}\n\nA property video is useful when you cannot make it in person or want a cleaner first look before committing time. Ask to see the parts photos usually hide: approach, street feel, room transitions, storage, outdoor privacy, and natural light.`;
+      actions.push("View property video", "Ask for layout walkthrough", "Schedule in person later");
       actionCard = {
         ...propertyActionCard(property, "Video tour options"),
         buttons: [
-          { label: "Request video tour", href: `/tours?propertyId=${property.id}&mode=video`, kind: "primary" },
+          { label: "View property video", href: `/property/${property.id}#property-video-tour`, kind: "primary" },
           { label: "Schedule private tour", href: `/tours?propertyId=${property.id}`, kind: "secondary" },
           { label: "View property", href: `/property/${property.id}`, kind: "secondary" },
         ],
@@ -523,7 +523,7 @@ export function buildConciergeReply(args: {
           };
       break;
     default:
-      body = "Tell me what you are trying to accomplish, and I’ll point you to the cleanest next step. You can ask by budget, location, bedrooms, tour timing, video tour, contact, documents, or verification.";
+      body = "Tell me what you are trying to accomplish, and I’ll point you to the cleanest next step. You can ask by budget, location, bedrooms, tour timing, property video, contact, documents, or verification.";
       actions.push("Show me homes under $2M", "Schedule a private tour", "How do I contact Elena?");
       actionCard = {
         title: "Suggested next steps",
@@ -531,7 +531,7 @@ export function buildConciergeReply(args: {
         buttons: [
           { label: "View listings", href: "/listings", kind: "primary" },
           { label: "Schedule private tour", href: `/tours?propertyId=${property.id}`, kind: "secondary" },
-          { label: "Request video tour", href: `/tours?propertyId=${property.id}&mode=video`, kind: "secondary" },
+          { label: "View property video", href: `/property/${property.id}#property-video-tour`, kind: "secondary" },
           { label: args.isLoggedIn ? "Open verification" : "Sign in to verify", href: args.isLoggedIn ? "/account#client-verification" : "/login", kind: "secondary" },
         ],
       };

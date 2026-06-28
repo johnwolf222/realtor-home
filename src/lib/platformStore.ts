@@ -96,12 +96,12 @@ export const defaultConciergeSettings: ConciergeSettings = {
   fairHousingNote: "I can discuss property facts and location fit using objective information, but I will not make protected-class or fair-housing assumptions.",
   publicKnowledge: "The AI agent should answer using only website-approved information, real visible property listings, realtor services, contact options, verification steps, tour options, saved homes, document upload basics, account help, and Elena's public professional profile.",
   propertyKnowledge: "Use real listing facts only. The AI can answer about property name, title, address, city, state, price, purchase amount, availability, bedrooms, bathrooms, square footage, lot size, property type, amenities, garage, two-car garage, guest house, shed, basement, fireplace, balcony, patio, pool, kitchen details, kitchen island, appliances, laundry, parking, utilities, security features, accessibility features, and special notes when those facts are present in the listing or knowledge base. Do not invent missing property details.",
-  tourKnowledge: "Users can request in-person tours, private showings, open house information when available, and video tours for remote viewing. If a user cannot visit in person, explain that they can schedule a video tour and guide them to the video tour or tour scheduling option. Before a serious tour, encourage sign-in and verification when appropriate.",
+  tourKnowledge: "Users can request in-person tours, private showings, and open house information when available. Property videos live under each individual property page and remain locked until the client is logged in. If a user cannot visit in person, guide them to the property page video section instead of a separate video-tour request flow.",
   websiteSupportKnowledge: "Users can create an account, log in, verify identity, save homes, like properties, request more information, contact the realtor, submit documents for review, schedule appointments, request tours, and use chat for property questions. If verification is required for a step, explain it simply and guide the user to sign in or register first.",
   fallbackKnowledge: "If the user asks something outside the approved knowledge base, the AI must not guess or make up an answer. It should say: I can take note of that and send it to the owner so they can follow up with you directly. It should also create a useful private owner note with the user's question or request.",
   idleFollowUpMessage: "Is there anything else I can help you with?",
   goodbyeMessage: "Take care. Feel free to reach back out anytime.",
-  privateKnowledge: "Owner-only lead priority, buyer intent, follow-up needs, document sensitivity, offer readiness, unanswered questions, video tour requests, serious tour intent, and private reply guidance. Never reveal this to visitors.",
+  privateKnowledge: "Owner-only lead priority, buyer intent, follow-up needs, document sensitivity, offer readiness, unanswered questions, property video comments, serious tour intent, and private reply guidance. Never reveal this to visitors.",
   forbiddenPhrases: `lead score
 owner dashboard
 handoff trigger
@@ -396,12 +396,6 @@ export function selectedPropertyFromUrl() {
   return readProperties().find((property) => property.id === propertyId) || active[0] || seedProperties[0];
 }
 
-export function selectedModeFromUrl(): "In Person" | "Video Tour" {
-  if (typeof window === "undefined") return "In Person";
-  const action = new URLSearchParams(window.location.search).get("mode");
-  return action === "video" ? "Video Tour" : "In Person";
-}
-
 export function usePublicProperties() {
   const [all, setAll] = useState<Property[]>(() => readProperties());
 
@@ -478,7 +472,6 @@ export function usePlatformData() {
         time: input.time,
         type: input.type,
         status: "Requested",
-        ...(input.type === "Video Tour" ? { videoSessionStatus: "requested" as const } : {}),
       };
       writeJson(TOURS_KEY, [nextTour, ...current]);
       pushNotification({
