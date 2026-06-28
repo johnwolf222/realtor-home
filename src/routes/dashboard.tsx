@@ -1496,6 +1496,7 @@ function Chats() {
                 {selected.messages.map((m) => {
                   const isAi = m.from !== "member" && m.text.startsWith("AI Concierge:");
                   const isSystem = m.kind === "system" || m.kind === "timeout";
+                  const propertyVideoCard = parseOwnerPropertyVideoComment(m.text);
                   if (isSystem) {
                     return (
                       <div key={m.id} className="flex justify-center">
@@ -1510,7 +1511,11 @@ function Chats() {
                     <div key={m.id} className={`flex ${m.from === "member" ? "justify-start" : "justify-end"}`}>
                       <div className={`max-w-[82%] rounded-3xl px-4 py-3 text-sm leading-relaxed shadow-sm ${m.from === "member" ? "rounded-bl-md bg-card" : isAi ? "rounded-br-md border border-primary/20 bg-secondary" : "rounded-br-md bg-primary text-primary-foreground"}`}>
                         {isAi && <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-accent-foreground">AI concierge</p>}
-                        <p className="whitespace-pre-line">{isAi ? m.text.replace(/^AI Concierge:\s*/, "") : m.text}</p>
+                        {propertyVideoCard ? (
+                          <OwnerPropertyVideoCommentCard card={propertyVideoCard} clientName={selected.name} />
+                        ) : (
+                          <p className="whitespace-pre-line">{isAi ? m.text.replace(/^AI Concierge:\s*/, "") : m.text}</p>
+                        )}
                         <p className={`mt-1 text-[10px] ${m.from === "member" ? "text-muted-foreground" : isAi ? "text-muted-foreground" : "text-primary-foreground/65"}`}>{m.time}</p>
                       </div>
                     </div>
@@ -1530,6 +1535,83 @@ function Chats() {
     </div>
   );
 }
+
+type OwnerPropertyVideoCommentCardData = {
+  propertyTitle: string;
+  videoTitle: string;
+  comment: string;
+  href: string;
+};
+
+function parseOwnerPropertyVideoComment(text: string): OwnerPropertyVideoCommentCardData | null {
+  if (!text.startsWith("🎥 Property video comment for ")) return null;
+
+  const lines = text.split("\n").map((line) => line.trim());
+  const titleLine = lines[0] || "";
+  const videoLineIndex = lines.findIndex((line) => line.startsWith("Video card:"));
+  const openLineIndex = lines.findIndex((line) => line.startsWith("Open property:"));
+
+  const propertyTitle = titleLine
+    .replace("🎥 Property video comment for ", "")
+    .replace(/\.$/, "")
+    .trim() || "this property";
+
+  const commentEnd = videoLineIndex >= 0 ? videoLineIndex : openLineIndex >= 0 ? openLineIndex : lines.length;
+  const comment = lines.slice(1, commentEnd).filter(Boolean).join("\n").trim();
+
+  const videoTitle = videoLineIndex >= 0
+    ? lines[videoLineIndex].replace("Video card:", "").trim()
+    : "Property Video";
+
+  const rawHref = openLineIndex >= 0
+    ? lines[openLineIndex].replace("Open property:", "").trim()
+    : "/listings";
+
+  const href = rawHref.includes("#property-video-tour")
+    ? rawHref
+    : rawHref.startsWith("/property/")
+      ? `${rawHref}#property-video-tour`
+      : rawHref || "/listings";
+
+  return {
+    propertyTitle,
+    videoTitle: videoTitle || "Property Video",
+    comment: comment || "No written comment provided.",
+    href,
+  };
+}
+
+function OwnerPropertyVideoCommentCard({ card, clientName }: { card: OwnerPropertyVideoCommentCardData; clientName: string }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-violet-200 bg-violet-50 text-violet-950 shadow-sm">
+      <div className="border-b border-violet-200 bg-white/70 px-4 py-3">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-700">Property video comment</p>
+        <h4 className="mt-1 text-sm font-black">{card.propertyTitle}</h4>
+        <p className="mt-1 text-xs font-semibold text-violet-800/80">{card.videoTitle}</p>
+      </div>
+
+      <div className="space-y-3 px-4 py-3">
+        <div className="rounded-xl bg-white/70 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-600">Client</p>
+          <p className="mt-1 text-sm font-bold">{clientName || "Client"}</p>
+        </div>
+
+        <div className="rounded-xl bg-white/70 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-600">Comment</p>
+          <p className="mt-1 whitespace-pre-line text-sm leading-6">{card.comment}</p>
+        </div>
+
+        <a
+          href={card.href}
+          className="inline-flex w-full items-center justify-center rounded-xl bg-violet-700 px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-white shadow-sm hover:bg-violet-800"
+        >
+          Open property video
+        </a>
+      </div>
+    </div>
+  );
+}
+
 
 function AIConcierge() {
   const { conciergeSettings, updateConciergeSettings } = usePlatformData();

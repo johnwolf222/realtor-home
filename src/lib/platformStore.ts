@@ -700,7 +700,7 @@ export function usePlatformData() {
       cleanComment,
       "",
       `Video card: ${videoTour?.title || "Property Video Tour"}`,
-      `Open property: /property/${input.propertyId}`,
+      `Open property: /property/${input.propertyId}#property-video-tour`,
     ].join("\\n");
 
     const chats = readJson<ChatThread[]>(CHATS_KEY, seedChatThreads);
