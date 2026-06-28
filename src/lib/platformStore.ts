@@ -4,14 +4,22 @@ import {
   chatThreads as seedChatThreads,
   leads as seedLeads,
   properties as seedProperties,
+  propertyVideoTourComments as seedPropertyVideoTourComments,
+  propertyVideoTours as seedPropertyVideoTours,
+  propertyVideoTourViews as seedPropertyVideoTourViews,
   realtor,
   tourRequests as seedTourRequests,
+  defaultPropertyVideoTourChapters,
   type ChatActionPayload,
   type ChatMessage,
   type ChatThread,
   type Lead,
   type Property,
   type PropertyStatus,
+  type PropertyVideoTour,
+  type PropertyVideoTourChapter,
+  type PropertyVideoTourComment,
+  type PropertyVideoTourView,
   type SocialLink,
   type TourRequest,
   type VerificationStatus,
@@ -19,6 +27,9 @@ import {
 
 const LEADS_KEY = "ev_platform_leads";
 const TOURS_KEY = "ev_platform_tours";
+const PROPERTY_VIDEO_TOURS_KEY = "ev_platform_property_video_tours";
+const PROPERTY_VIDEO_TOUR_VIEWS_KEY = "ev_platform_property_video_tour_views";
+const PROPERTY_VIDEO_TOUR_COMMENTS_KEY = "ev_platform_property_video_tour_comments";
 const CHATS_KEY = "ev_platform_chats";
 const PROFILE_KEY = "ev_platform_realtor_profile";
 const NOTIFICATIONS_KEY = "ev_platform_notifications";
@@ -124,6 +135,9 @@ export type ListingDraft = Omit<Property, "id" | "photos" | "lat" | "lng"> & {
 type Snapshot = {
   leads: Lead[];
   tourRequests: TourRequest[];
+  propertyVideoTours: PropertyVideoTour[];
+  propertyVideoTourViews: PropertyVideoTourView[];
+  propertyVideoTourComments: PropertyVideoTourComment[];
   chatThreads: ChatThread[];
   realtorProfile: StoredRealtorProfile;
   notifications: PlatformNotification[];
@@ -233,6 +247,9 @@ function readSnapshot(): Snapshot {
   return {
     leads: readJson<Lead[]>(LEADS_KEY, seedLeads),
     tourRequests: readJson<TourRequest[]>(TOURS_KEY, seedTourRequests),
+    propertyVideoTours: readJson<PropertyVideoTour[]>(PROPERTY_VIDEO_TOURS_KEY, seedPropertyVideoTours),
+    propertyVideoTourViews: readJson<PropertyVideoTourView[]>(PROPERTY_VIDEO_TOUR_VIEWS_KEY, seedPropertyVideoTourViews),
+    propertyVideoTourComments: readJson<PropertyVideoTourComment[]>(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, seedPropertyVideoTourComments),
     chatThreads: readJson<ChatThread[]>(CHATS_KEY, seedChatThreads),
     realtorProfile: readJson<StoredRealtorProfile>(PROFILE_KEY, baseProfile()),
     notifications: readJson<PlatformNotification[]>(NOTIFICATIONS_KEY, []),
@@ -493,6 +510,258 @@ export function usePlatformData() {
     updateTourRequest(id, { status: "Confirmed" });
   }, [updateTourRequest]);
 
+
+  const upsertPropertyVideoTour = useCallback((input: {
+    propertyId: string;
+    title?: string;
+    description?: string;
+    videoUrl: string;
+    posterUrl?: string;
+    isEnabled?: boolean;
+    chapters?: PropertyVideoTourChapter[];
+  }) => {
+    const cleanUrl = input.videoUrl.trim();
+
+    if (!cleanUrl) {
+      throw new Error("Video URL is required to save a property video tour.");
+    }
+
+    const current = readJson<PropertyVideoTour[]>(PROPERTY_VIDEO_TOURS_KEY, seedPropertyVideoTours);
+    const existing = current.find((tour) => tour.propertyId === input.propertyId);
+    const property = readProperties().find((item) => item.id === input.propertyId);
+    const now = new Date().toISOString();
+
+    const nextVideoTour: PropertyVideoTour = {
+      id: existing?.id || nowId("pvt"),
+      propertyId: input.propertyId,
+      title: input.title?.trim() || existing?.title || `${property?.title || "Property"} Video Tour`,
+      description: input.description?.trim() || existing?.description || "Owner-recorded walkthrough for this property.",
+      videoUrl: cleanUrl,
+      posterUrl: input.posterUrl?.trim() || existing?.posterUrl,
+      isEnabled: input.isEnabled ?? existing?.isEnabled ?? true,
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+      chapters: input.chapters?.length
+        ? input.chapters
+        : existing?.chapters?.length
+          ? existing.chapters
+          : defaultPropertyVideoTourChapters,
+    };
+
+    const withoutThisProperty = current.filter((tour) => tour.propertyId !== input.propertyId);
+    writeJson(PROPERTY_VIDEO_TOURS_KEY, [nextVideoTour, ...withoutThisProperty]);
+
+    pushNotification({
+      type: "video",
+      title: existing ? "Property video updated" : "Property video added",
+      body: `${nextVideoTour.title} is ${nextVideoTour.isEnabled ? "available" : "saved but locked"}.`,
+    });
+
+    return nextVideoTour;
+  }, []);
+
+  const removePropertyVideoTour = useCallback((propertyId: string) => {
+    const currentTours = readJson<PropertyVideoTour[]>(PROPERTY_VIDEO_TOURS_KEY, seedPropertyVideoTours);
+    const removed = currentTours.find((tour) => tour.propertyId === propertyId);
+
+    writeJson(PROPERTY_VIDEO_TOURS_KEY, currentTours.filter((tour) => tour.propertyId !== propertyId));
+
+    const currentViews = readJson<PropertyVideoTourView[]>(PROPERTY_VIDEO_TOUR_VIEWS_KEY, seedPropertyVideoTourViews);
+    writeJson(PROPERTY_VIDEO_TOUR_VIEWS_KEY, currentViews.filter((view) => view.propertyId !== propertyId));
+
+    const currentComments = readJson<PropertyVideoTourComment[]>(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, seedPropertyVideoTourComments);
+    writeJson(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, currentComments.filter((comment) => comment.propertyId !== propertyId));
+
+    if (removed) {
+      pushNotification({
+        type: "video",
+        title: "Property video removed",
+        body: `${removed.title} was removed from the property page.`,
+      });
+    }
+  }, []);
+
+  const recordPropertyVideoTourView = useCallback((input: {
+    propertyId: string;
+    videoTourId: string;
+    clientId?: string;
+    clientName: string;
+    clientEmail: string;
+  }) => {
+    const current = readJson<PropertyVideoTourView[]>(PROPERTY_VIDEO_TOUR_VIEWS_KEY, seedPropertyVideoTourViews);
+    const existingIndex = current.findIndex((view) =>
+      view.videoTourId === input.videoTourId &&
+      (
+        Boolean(input.clientId && view.clientId === input.clientId) ||
+        normalize(view.clientEmail) === normalize(input.clientEmail)
+      ),
+    );
+
+    const now = new Date().toISOString();
+
+    if (existingIndex >= 0) {
+      const next = current.map((view, index) =>
+        index === existingIndex
+          ? {
+              ...view,
+              clientName: input.clientName || view.clientName,
+              clientEmail: input.clientEmail || view.clientEmail,
+              viewedAt: now,
+              viewCount: view.viewCount + 1,
+            }
+          : view,
+      );
+      writeJson(PROPERTY_VIDEO_TOUR_VIEWS_KEY, next);
+      return next[existingIndex];
+    }
+
+    const nextView: PropertyVideoTourView = {
+      id: nowId("pvv"),
+      propertyId: input.propertyId,
+      videoTourId: input.videoTourId,
+      clientId: input.clientId,
+      clientName: input.clientName || "Client",
+      clientEmail: input.clientEmail,
+      viewedAt: now,
+      viewCount: 1,
+    };
+
+    writeJson(PROPERTY_VIDEO_TOUR_VIEWS_KEY, [nextView, ...current]);
+    return nextView;
+  }, []);
+
+  const togglePropertyVideoTourLike = useCallback((input: {
+    propertyId: string;
+    videoTourId: string;
+    clientId?: string;
+    clientName: string;
+    clientEmail: string;
+  }) => {
+    const current = readJson<PropertyVideoTourComment[]>(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, seedPropertyVideoTourComments);
+    const existingIndex = current.findIndex((comment) =>
+      comment.videoTourId === input.videoTourId &&
+      (
+        Boolean(input.clientId && comment.clientId === input.clientId) ||
+        normalize(comment.clientEmail) === normalize(input.clientEmail)
+      ),
+    );
+
+    const now = new Date().toISOString();
+
+    if (existingIndex >= 0) {
+      const next = current.map((comment, index) =>
+        index === existingIndex
+          ? { ...comment, liked: !comment.liked, createdAt: now }
+          : comment,
+      );
+      writeJson(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, next);
+      return next[existingIndex];
+    }
+
+    const nextFeedback: PropertyVideoTourComment = {
+      id: nowId("pvc"),
+      propertyId: input.propertyId,
+      videoTourId: input.videoTourId,
+      clientId: input.clientId,
+      clientName: input.clientName || "Client",
+      clientEmail: input.clientEmail,
+      comment: "",
+      liked: true,
+      createdAt: now,
+    };
+
+    writeJson(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, [nextFeedback, ...current]);
+    return nextFeedback;
+  }, []);
+
+  const addPropertyVideoTourComment = useCallback((input: {
+    propertyId: string;
+    videoTourId: string;
+    clientId?: string;
+    clientName: string;
+    clientEmail: string;
+    comment: string;
+  }) => {
+    const cleanComment = input.comment.trim().slice(0, 500);
+
+    if (!cleanComment) {
+      return undefined;
+    }
+
+    const property = readProperties().find((item) => item.id === input.propertyId);
+    const videoTour = readJson<PropertyVideoTour[]>(PROPERTY_VIDEO_TOURS_KEY, seedPropertyVideoTours).find((tour) => tour.id === input.videoTourId);
+    const now = new Date().toISOString();
+
+    const thread = ensureThread({
+      name: input.clientName || "Client",
+      email: input.clientEmail,
+      interest: property?.title || "Property video tour",
+      source: "Property video tour comment",
+      message: cleanComment,
+    });
+
+    const messageId = nowId("msg");
+    const messageText = [
+      `🎥 Property video comment for ${property?.title || "this property"}.`,
+      "",
+      cleanComment,
+      "",
+      `Video card: ${videoTour?.title || "Property Video Tour"}`,
+      `Open property: /property/${input.propertyId}`,
+    ].join("\\n");
+
+    const chats = readJson<ChatThread[]>(CHATS_KEY, seedChatThreads);
+    writeJson(CHATS_KEY, chats.map((item) =>
+      item.id === thread.id
+        ? {
+            ...item,
+            unread: item.unread + 1,
+            messages: [
+              ...item.messages,
+              { id: messageId, from: "member" as const, text: messageText, time: "Now", createdAt: Date.now() },
+            ],
+          }
+        : item,
+    ));
+
+    const current = readJson<PropertyVideoTourComment[]>(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, seedPropertyVideoTourComments);
+    const existingIndex = current.findIndex((comment) =>
+      comment.videoTourId === input.videoTourId &&
+      (
+        Boolean(input.clientId && comment.clientId === input.clientId) ||
+        normalize(comment.clientEmail) === normalize(input.clientEmail)
+      ),
+    );
+
+    const nextComment: PropertyVideoTourComment = {
+      id: existingIndex >= 0 ? current[existingIndex].id : nowId("pvc"),
+      propertyId: input.propertyId,
+      videoTourId: input.videoTourId,
+      clientId: input.clientId,
+      clientName: input.clientName || "Client",
+      clientEmail: input.clientEmail,
+      comment: cleanComment,
+      liked: existingIndex >= 0 ? current[existingIndex].liked : false,
+      createdAt: now,
+      chatThreadId: thread.id,
+      chatMessageId: messageId,
+    };
+
+    const next = existingIndex >= 0
+      ? current.map((comment, index) => index === existingIndex ? nextComment : comment)
+      : [nextComment, ...current];
+
+    writeJson(PROPERTY_VIDEO_TOUR_COMMENTS_KEY, next);
+
+    pushNotification({
+      type: "video",
+      title: "Property video comment",
+      body: `${nextComment.clientName} commented on ${property?.title || "a property video"}.`,
+    });
+
+    return nextComment;
+  }, []);
+
   const ensureChatThread = useCallback((capture: LeadCapture) => {
     upsertLead(capture);
     return ensureThread(capture);
@@ -750,7 +1019,18 @@ export function usePlatformData() {
 
   const clearPlatformData = useCallback(() => {
     if (typeof window === "undefined") return;
-    [LEADS_KEY, TOURS_KEY, CHATS_KEY, PROFILE_KEY, NOTIFICATIONS_KEY, PROPERTIES_KEY, AI_SETTINGS_KEY].forEach((key) => window.localStorage.removeItem(key));
+    [
+      LEADS_KEY,
+      TOURS_KEY,
+      PROPERTY_VIDEO_TOURS_KEY,
+      PROPERTY_VIDEO_TOUR_VIEWS_KEY,
+      PROPERTY_VIDEO_TOUR_COMMENTS_KEY,
+      CHATS_KEY,
+      PROFILE_KEY,
+      NOTIFICATIONS_KEY,
+      PROPERTIES_KEY,
+      AI_SETTINGS_KEY,
+    ].forEach((key) => window.localStorage.removeItem(key));
     emit();
   }, []);
 
@@ -767,6 +1047,11 @@ export function usePlatformData() {
     updateTourRequest,
     deleteTourRequest,
     confirmTourRequest,
+    upsertPropertyVideoTour,
+    removePropertyVideoTour,
+    recordPropertyVideoTourView,
+    togglePropertyVideoTourLike,
+    addPropertyVideoTourComment,
     ensureChatThread,
     addChatMessage,
     addSystemChatMessage,
