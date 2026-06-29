@@ -101,32 +101,6 @@ function Tours() {
               </div>
             </div>
 
-            <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm sm:p-8">
-              <h3 className="font-serif text-2xl">Property videos</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Owner-recorded property videos are managed in the owner dashboard and appear under each individual listing. Logged-in clients can watch, like, comment, and create view history for the owner.
-              </p>
-
-              <div className="mt-5 space-y-3">
-                {activeProperties.map((item) => {
-                  const video = propertyVideoTours.find((tour) => tour.propertyId === item.id && tour.isEnabled);
-
-                  return (
-                    <a key={item.id} href={`/property/${item.id}#property-video-tour`} className="flex flex-col gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:bg-secondary sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{item.title}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">{item.city} · {item.beds} bd · {item.baths} ba</p>
-                      </div>
-                      <span className={`w-fit shrink-0 rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wide ${
-                        video ? "bg-green-100 text-green-800" : "bg-secondary text-muted-foreground"
-                      }`}>
-                        {video ? "Video ready" : "No video yet"}
-                      </span>
-                    </a>
-                  );
-                })}
-              </div>
-            </section>
           </div>
 
           <div className="rounded-[2rem] border border-border bg-card p-6 shadow-xl sm:p-8 lg:sticky lg:top-24 lg:h-fit">
@@ -203,6 +177,33 @@ function Tours() {
                 </Link>
               </form>
             )}
+          </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm sm:p-8">
+          <h3 className="font-serif text-2xl">Property videos</h3>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Owner-recorded property videos are managed in the owner dashboard and appear under each individual listing. Logged-in clients can watch, like, comment, and create view history for the owner.
+          </p>
+
+          <div className="mt-5 space-y-3">
+            {activeProperties.map((item) => {
+              const video = propertyVideoTours.find((tour) => tour.propertyId === item.id && tour.isEnabled);
+
+              return (
+                <a key={item.id} href={`/property/${item.id}#property-video-tour`} className="flex flex-col gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:bg-secondary sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{item.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.city} · {item.beds} bd · {item.baths} ba</p>
+                  </div>
+                  <span className={`w-fit shrink-0 rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wide ${
+                    video ? "bg-green-100 text-green-800" : "bg-secondary text-muted-foreground"
+                  }`}>
+                    {video ? "Video ready" : "No video yet"}
+                  </span>
+                </a>
+              );
+            })}
           </div>
         </section>
       </main>
