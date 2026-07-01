@@ -2278,14 +2278,22 @@ function ChatRoom() {
               return;
             }
 
-            addChatMessage(thread.id, "realtor", `You’re signed in. Opening the property video section for ${selectedHomeForAction.title}.`);
-            routeAfterChatMessage(videoTourRoute);
+            setLastActions(["Schedule Tour", "View Listings", "Contact Realtor"]);
+            addChatMessage(
+              thread.id,
+              "realtor",
+              `You’re signed in. The property video section for ${selectedHomeForAction.title} is available from that property's detail page. If the video does not open cleanly, use View Listings and open the property directly.`,
+            );
             return;
           }
 
           if (isExactScheduleTourButtonMessage(memberMessage.trim())) {
-            addChatMessage(thread.id, "realtor", `You’re signed in. Opening the tour scheduler for ${selectedHomeForAction.title}.`);
-            routeAfterChatMessage(tourRoute);
+            setLastActions(["View Listings", "View Property Video", "Contact Realtor"]);
+            addChatMessage(
+              thread.id,
+              "realtor",
+              `You’re signed in. You can schedule an in-person tour for ${selectedHomeForAction.title} from the Tours page or from the property detail page. Use View Listings if you want to choose the property again.`,
+            );
             return;
           }
 
