@@ -2598,15 +2598,21 @@ function ChatRoom() {
             .slice(0, 6)
         : properties.slice(0, 6);
 
-      // Do not render property cards here yet. The current card strip is unstable in this route.
-      // Keep the chat useful with safe action buttons until the card system is rebuilt cleanly.
-      setLastPropertyCards([]);
+      const relatedHomes = matchingProperties.slice(0, 3);
+      setLastPropertyCards(relatedHomes);
       setLastActions(["View Listings", "Schedule Tour", "Contact Realtor"]);
 
       if (matchingProperties.length) {
+        const relatedHomeText = relatedHomes
+          .map((property) => {
+            const price = formatShortcutPrice(property.price);
+            return `• ${property.title} — ${price}, ${property.beds} bed, ${property.baths} bath, ${property.city}`;
+          })
+          .join("\n");
+
         const reply = directBudgetAmount
-          ? `I found homes under ${formatShortcutPrice(directBudgetAmount)}. Use the options below to view listings, schedule a tour, or contact the realtor.`
-          : "Here are available Atlanta-area homes. Use the options below to view listings, schedule a tour, or contact the realtor.";
+          ? `I found related homes under ${formatShortcutPrice(directBudgetAmount)}.\n\n${relatedHomeText}\n\nUse the related home references and options below to view listings, schedule a tour, or contact the realtor.`
+          : `Here are available Atlanta-area homes.\n\n${relatedHomeText}\n\nUse the related home references and options below to view listings, schedule a tour, or contact the realtor.`;
 
         addChatMessage(thread.id, "realtor", reply);
       } else {
