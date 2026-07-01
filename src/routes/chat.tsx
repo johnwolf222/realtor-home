@@ -2685,10 +2685,10 @@ function ChatRoom() {
             <a href={`/tours?propertyId=${selectedPropertyId}`} className="flex items-center gap-3 rounded-2xl bg-primary p-4 text-sm font-semibold text-primary-foreground">
               <CalendarClock className="size-5" /> Schedule a Tour
             </a>
-            <button onClick={videoRequest} className="flex w-full items-center gap-3 rounded-2xl bg-secondary p-4 text-left text-sm font-semibold">
+            <button type="button" onClick={videoRequest} className="flex w-full items-center gap-3 rounded-2xl bg-secondary p-4 text-left text-sm font-semibold">
               <Video className="size-5" /> Request Video Call
             </button>
-            <button onClick={() => fileInput.current?.click()} className="flex w-full items-center gap-3 rounded-2xl bg-secondary p-4 text-left text-sm font-semibold">
+            <button type="button" onClick={() => fileInput.current?.click()} className="flex w-full items-center gap-3 rounded-2xl bg-secondary p-4 text-left text-sm font-semibold">
               <FileText className="size-5" /> Upload Documents
             </button>
           </div>
@@ -2715,7 +2715,7 @@ function ChatRoom() {
                 </p>
               </div>
             </div>
-            <button onClick={videoRequest} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-2 text-xs font-semibold">
+            <button type="button" onClick={videoRequest} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-2 text-xs font-semibold">
               <Video className="size-4" /> Video
             </button>
           </div>
@@ -2889,7 +2889,7 @@ function ChatRoom() {
               <p className="mx-auto mt-2 max-w-2xl text-xs leading-6 text-muted-foreground">
                 If there is something I can help with, please leave a message at any time.
               </p>
-              <button onClick={startNewChatSession} className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-xs font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90">
+              <button type="button" onClick={startNewChatSession} className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-xs font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90">
                 <MessageCircle className="size-4" /> Start a New Chat
               </button>
             </div>
@@ -2898,7 +2898,7 @@ function ChatRoom() {
               {lastActions.length > 0 ? (
                 <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
                   {lastActions.filter((item, index, arr) => arr.indexOf(item) === index).slice(0, 6).map((prompt) => (
-                    <button
+                    <button type="button"
                       key={prompt}
                       onClick={() => sendText(prompt)}
                       className="flex-none rounded-full border border-border bg-background px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -2914,7 +2914,7 @@ function ChatRoom() {
               </div>
               <div className="flex items-center gap-2">
                 <input ref={fileInput} type="file" hidden onChange={onFile} />
-                <button onClick={() => fileInput.current?.click()} aria-label="Attach document" className="grid size-12 shrink-0 place-items-center rounded-full border border-border text-muted-foreground">
+                <button type="button" onClick={() => fileInput.current?.click()} aria-label="Attach document" className="grid size-12 shrink-0 place-items-center rounded-full border border-border text-muted-foreground">
                   <Paperclip className="size-4" />
                 </button>
                 <input
@@ -2924,7 +2924,7 @@ function ChatRoom() {
                   placeholder="Type a message..."
                   className="h-12 w-full rounded-full border border-border bg-background px-4 text-sm outline-none"
                 />
-                <button onClick={send} aria-label="Send" className="grid size-12 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                <button type="button" onClick={send} aria-label="Send" className="grid size-12 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                   <Send className="size-4" />
                 </button>
               </div>
@@ -3031,7 +3031,7 @@ function ChatActionCard({
 
             if (button.action) {
               return (
-                <button key={button.label} onClick={() => handleButton(button)} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold ${classes}`}>
+                <button type="button" key={button.label} onClick={() => handleButton(button)} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold ${classes}`}>
                   {content}
                 </button>
               );
