@@ -1161,6 +1161,8 @@ function routeAfterChatMessage(href: string) {
 type ChatPropertyVideoTourLookup = { propertyId: string; isEnabled?: boolean; videoUrl?: string };
 
 function hasOwnerPropertyVideo(propertyVideoTours: ChatPropertyVideoTourLookup[], propertyId?: string) {
+  if (!Array.isArray(propertyVideoTours)) return false;
+
   if (!propertyId) return false;
 
   return propertyVideoTours.some(
@@ -2036,7 +2038,7 @@ function ChatRoom() {
   const profile = useRealtorProfile();
   const { user } = useAuth();
   const { properties,
-    propertyVideoTours, activeProperties } = usePublicProperties();
+    propertyVideoTours = [], activeProperties } = usePublicProperties();
   const { chatThreads, ensureChatThread, addChatMessage, addSystemChatMessage, requestVideoCall, markThreadRead, conciergeSettings, recordAiHandoff, recordContactAction } = usePlatformData();
   const [threadId, setThreadId] = useState("");
   const [text, setText] = useState("");
@@ -2603,16 +2605,9 @@ function ChatRoom() {
       setLastActions(["View Listings", "Schedule Tour", "Contact Realtor"]);
 
       if (matchingProperties.length) {
-        const relatedHomeText = relatedHomes
-          .map((property) => {
-            const price = formatShortcutPrice(property.price);
-            return `• ${property.title} — ${price}, ${property.beds} bed, ${property.baths} bath, ${property.city}`;
-          })
-          .join("\n");
-
         const reply = directBudgetAmount
-          ? `I found related homes under ${formatShortcutPrice(directBudgetAmount)}.\n\n${relatedHomeText}\n\nUse the related home references and options below to view listings, schedule a tour, or contact the realtor.`
-          : `Here are available Atlanta-area homes.\n\n${relatedHomeText}\n\nUse the related home references and options below to view listings, schedule a tour, or contact the realtor.`;
+          ? `I found ${relatedHomes.length} related home${relatedHomes.length === 1 ? "" : "s"} under ${formatShortcutPrice(directBudgetAmount)}. Use the property result cards below to view details, schedule a tour, or open the property video section.`
+          : `Here are ${relatedHomes.length} available Atlanta-area home${relatedHomes.length === 1 ? "" : "s"}. Use the property result cards below to view details, schedule a tour, or open the property video section.`;
 
         addChatMessage(thread.id, "realtor", reply);
       } else {
