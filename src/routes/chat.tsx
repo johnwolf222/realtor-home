@@ -2311,8 +2311,8 @@ function ChatRoom() {
           thread.id,
           "realtor",
           isVideoTourMessage
-            ? "You’re signed in. Which property video would you like to view? Select a property card below."
-            : "You’re signed in. Which property would you like to tour? Select a property card below.",
+            ? "You’re signed in. Which property video would you like to view? Use the related home options below or open all listings."
+            : "You’re signed in. Which property would you like to tour? Use the related home options below or open all listings.",
         );
         return;
       }
@@ -2396,7 +2396,7 @@ function ChatRoom() {
             "realtor",
             isVideoTourMessage
               ? "Yes — property videos live under each property page when the owner has created them. If a video is not available yet, schedule an in-person tour so you can see the home directly."
-              : "You can schedule an in-person tour if tour options are available. Select a property card below or view all listings to choose a home.",
+              : "You can schedule an in-person tour if tour options are available. Use the related home options below or view all listings to choose a home.",
           );
           return;
         }
@@ -2407,7 +2407,7 @@ function ChatRoom() {
           addChatMessage(
             thread.id,
             "realtor",
-            "Which property are you asking about? You can select a property card below, open all listings, or tell me the property name, address, price range, bedroom count, or city so I can point you in the right direction.",
+            "Which property are you asking about? Use the related home options below, open all listings, or tell me the property name, address, price range, bedroom count, or city so I can point you in the right direction.",
           );
           return;
         }
@@ -2455,15 +2455,15 @@ function ChatRoom() {
         const message = (() => {
           if (homesToShow.length) {
             if (budgetFilter && isVideoTourMessage) {
-              return `I found homes matching ${budgetLabel} where you can view a property video when available. Select a property card to view details, schedule a tour, or view a property video.`;
+              return `I found homes matching ${budgetLabel} where you can view a property video when available. Use the related home options to view details, schedule a tour, or view a property video.`;
             }
 
             if (budgetFilter && isLiveTourMessage) {
-              return `I found homes matching ${budgetLabel} where you can request an in-person tour when available. Select a property card to view details, schedule a tour, or view a property video.`;
+              return `I found homes matching ${budgetLabel} where you can request an in-person tour when available. Use the related home options to view details, schedule a tour, or view a property video.`;
             }
 
             if (budgetFilter) {
-              return `I found homes ${budgetLabel}. Select a property card to view details, schedule a tour, or view a property video.`;
+              return `I found homes ${budgetLabel}. Use the related home options to view details, schedule a tour, or view a property video.`;
             }
 
             if (isVideoTourMessage) {
@@ -2471,7 +2471,7 @@ function ChatRoom() {
             }
 
             if (isLiveTourMessage) {
-              return "You can schedule an in-person tour if tour options are available. Select a property card below or view all listings to choose a home.";
+              return "You can schedule an in-person tour if tour options are available. Use the related home options below or view all listings to choose a home.";
             }
 
             if (filterParts.length) {
